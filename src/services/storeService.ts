@@ -1,0 +1,684 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
+import { db, isFirebaseConfigured } from '../lib/firebase';
+import {
+  DEFAULT_CATEGORIES,
+  DEFAULT_PRODUCTS,
+  DEFAULT_REVIEWS,
+  DEFAULT_SETTINGS,
+} from '../lib/constants';
+import { Category, CustomerReview, Order, OrderStatus, Product, StoreSettings } from '../types';
+
+// Sample demo order for immediate Track Order testing
+const SAMPLE_DEMO_ORDER: Order = {
+  id: 'XOR-1001',
+  customerName: 'মোহাম্মদ রাফসান',
+  phone: '01712345678',
+  address: 'বাড়ি নং ৪২, রোড নং ১১, বনানী, ঢাকা',
+  district: 'ঢাকা',
+  deliveryZone: 'inside_dhaka',
+  deliveryCharge: 70,
+  subtotal: 3850,
+  totalAmount: 3920,
+  paymentMethod: 'cod',
+  notes: 'বিকেল ৫টার পর ডেলিভারি দিলে ভালো হয়',
+  items: [
+    {
+      productId: 'xora-bag-102',
+      nameBn: 'হস্তশিল্প প্রিমিয়াম জেনুইন লেদার টোট ব্যাগ',
+      nameEn: 'Handcrafted Heritage Leather Tote Bag',
+      price: 3850,
+      image: '/src/assets/images/product_leather_bag_1792674216295.jpg',
+      selectedColor: 'কগনাক ব্রাউন',
+      quantity: 1,
+      totalPrice: 3850,
+    },
+  ],
+  status: 'shipped',
+  statusHistory: [
+    {
+      status: 'pending',
+      timestamp: '২০২৬-১০-২০ সকাল ১০:৩০',
+      noteBn: 'অর্ডারটি সিস্টেমে যুক্ত হয়েছে',
+      noteEn: 'Order received into system',
+    },
+    {
+      status: 'confirmed',
+      timestamp: '২০২৬-১০-২০ দুপুর ১২:১৫',
+      noteBn: 'কাস্টমার কেয়ার থেকে ফোন করে নিশ্চিত করা হয়েছে',
+      noteEn: 'Confirmed via phone by customer care',
+    },
+    {
+      status: 'processing',
+      timestamp: '২০২৬-১০-২১ সকাল ১১:০০',
+      noteBn: 'কোয়ালিটি চেক ও প্যাকেজিং সম্পন্ন হয়েছে',
+      noteEn: 'Quality inspected and safely packaged',
+    },
+    {
+      status: 'shipped',
+      timestamp: '২০২৬-১০-২২ সকাল ০৯:৪৫',
+      noteBn: 'ডেলিভারি পার্টনার (Steadfast Courier)-এ হস্তান্তর করা হয়েছে (ট্র্যাকিং: SF-892109)',
+      noteEn: 'Handed over to courier partner (Steadfast Courier, Tracking: SF-892109)',
+    },
+  ],
+  createdAt: '2026-10-20T10:30:00Z',
+  estimatedDelivery: '২০২৬-১০-২৩',
+};
+
+// LocalStorage Helpers
+const STORAGE_KEYS = {
+  PRODUCTS: 'xora_products',
+  CATEGORIES: 'xora_categories',
+  REVIEWS: 'xora_reviews',
+  SETTINGS: 'xora_settings',
+  ORDERS: 'xora_orders',
+};
+
+function initLocalStorageData() {
+  const existingProds = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+  // Auto-upgrade to bag catalog if old clothes/candle data detected or missing
+  if (!existingProds || existingProds.includes('xora-101') || existingProds.includes('fashion-tunic')) {
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
+    return;
+  }
+
+  if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.REVIEWS)) {
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
+  }
+}
+
+// Ensure seeded on module evaluation
+if (typeof window !== 'undefined') {
+  initLocalStorageData();
+}
+
+export const storeService = {
+  // Check demo mode status
+  isDemoMode(): boolean {
+    return !isFirebaseConfigured || !db;
+  },
+
+  // Fetch all products
+  async getProducts(): Promise<Product[]> {
+    if (isFirebaseConfigured && db) {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'products'));
+        if (!querySnapshot.empty) {
+          return querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+        }
+      } catch (e) {
+        console.warn('Firestore fetch products failed, using local storage demo data', e);
+      }
+    }
+
+    const localData = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    return localData ? JSON.parse(localData) : DEFAULT_PRODUCTS;
+  },
+
+  // Get single product
+  async getProduct(idOrSlug: string): Promise<Product | null> {
+    const products = await this.getProducts();
+    const product = products.find((p) => p.id === idOrSlug || p.slug === idOrSlug);
+    return product || null;
+  },
+
+  // Get categories
+  async getCategories(): Promise<Category[]> {
+    if (isFirebaseConfigured && db) {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (!querySnapshot.empty) {
+          return querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Category));
+        }
+      } catch (e) {
+        console.warn('Firestore fetch categories failed, using local storage', e);
+      }
+    }
+
+    const localData = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
+    return localData ? JSON.parse(localData) : DEFAULT_CATEGORIES;
+  },
+
+  // Get customer reviews
+  async getReviews(): Promise<CustomerReview[]> {
+    if (isFirebaseConfigured && db) {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'reviews'));
+        if (!querySnapshot.empty) {
+          return querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CustomerReview));
+        }
+      } catch (e) {
+        console.warn('Firestore fetch reviews failed, using local storage', e);
+      }
+    }
+
+    const localData = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+    return localData ? JSON.parse(localData) : DEFAULT_REVIEWS;
+  },
+
+  // Get store settings
+  async getSettings(): Promise<StoreSettings> {
+    if (isFirebaseConfigured && db) {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'general'));
+        if (snap.exists()) {
+          return snap.data() as StoreSettings;
+        }
+      } catch (e) {
+        console.warn('Firestore fetch settings failed, using local storage', e);
+      }
+    }
+
+    const localData = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    return localData ? JSON.parse(localData) : DEFAULT_SETTINGS;
+  },
+
+  // Create and submit new order
+  async createOrder(orderData: Omit<Order, 'id' | 'createdAt' | 'status' | 'statusHistory' | 'estimatedDelivery'>): Promise<Order> {
+    // Generate readable BD order ID: XOR-XXXXXX
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const orderId = `XOR-${randomNum}`;
+    const now = new Date();
+    
+    // Estimate delivery: 2 days for Dhaka, 4 days outside
+    const daysToAdd = orderData.deliveryZone === 'inside_dhaka' ? 2 : 4;
+    const estDate = new Date();
+    estDate.setDate(now.getDate() + daysToAdd);
+    const estString = estDate.toISOString().split('T')[0];
+
+    // Strip undefined values for clean Firestore storage
+    const sanitizedData: Record<string, any> = {};
+    for (const [k, v] of Object.entries(orderData)) {
+      if (v !== undefined) {
+        sanitizedData[k] = v;
+      }
+    }
+
+    const newOrder: Order = {
+      ...(sanitizedData as any),
+      id: orderId,
+      status: 'pending',
+      createdAt: now.toISOString(),
+      estimatedDelivery: estString,
+      statusHistory: [
+        {
+          status: 'pending',
+          timestamp: now.toLocaleString('bn-BD'),
+          noteBn: 'অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। শীঘ্রই কাস্টমার কেয়ার প্রতিনিধি ফোন করবেন।',
+          noteEn: 'Order received. Customer support representative will call shortly to verify.',
+        },
+      ],
+    };
+
+    // Save directly to Firestore 'orders' collection if configured
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'orders', orderId), newOrder);
+        console.log('Order successfully saved to Firestore orders collection:', orderId);
+      } catch (e) {
+        console.warn('Could not save order to Firestore, saved to local storage:', e);
+      }
+    }
+
+    // Always store to localStorage for client-side persistence and tracking fallback
+    const existingOrdersStr = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const orders: Order[] = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
+    orders.unshift(newOrder);
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+
+    return newOrder;
+  },
+
+  // Track order by Order ID and Phone Number
+  async trackOrder(orderId: string, phone: string): Promise<Order | null> {
+    const rawId = orderId.trim().toUpperCase();
+    const cleanId = rawId.startsWith('XOR-') ? rawId : `XOR-${rawId}`;
+    const cleanPhone = phone.trim().replace(/[^0-9]/g, '');
+
+    if (!cleanPhone || cleanPhone.length < 8) {
+      return null;
+    }
+
+    // 1. Check Firestore 'orders' collection by Order ID first
+    if (isFirebaseConfigured && db) {
+      try {
+        // Try formatted ID first (e.g. XOR-123456)
+        let docRef = doc(db, 'orders', cleanId);
+        let docSnap = await getDoc(docRef);
+
+        // Fallback to raw ID if different
+        if (!docSnap.exists() && rawId !== cleanId) {
+          docRef = doc(db, 'orders', rawId);
+          docSnap = await getDoc(docRef);
+        }
+
+        if (docSnap.exists()) {
+          const data = docSnap.data() as Order;
+          const orderPhone = (data.phone || '').replace(/[^0-9]/g, '');
+          
+          // Match phone number (exact, or ends with same 8+ digits)
+          const phoneMatches =
+            orderPhone === cleanPhone ||
+            (cleanPhone.length >= 8 && orderPhone.endsWith(cleanPhone.slice(-8))) ||
+            (orderPhone.length >= 8 && cleanPhone.endsWith(orderPhone.slice(-8)));
+
+          if (phoneMatches) {
+            return data;
+          }
+        }
+      } catch (e) {
+        console.warn('Error querying Firestore for order tracking:', e);
+      }
+    }
+
+    // 2. Fallback to localStorage orders
+    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const localOrders: Order[] = localData ? JSON.parse(localData) : [];
+
+    const matched = localOrders.find((o) => {
+      const oId = (o.id || '').toUpperCase();
+      const oPhone = (o.phone || '').replace(/[^0-9]/g, '');
+      const idMatches = oId === cleanId || oId === rawId || oId === `XOR-${rawId}`;
+      const phoneMatches =
+        oPhone === cleanPhone ||
+        (cleanPhone.length >= 8 && oPhone.endsWith(cleanPhone.slice(-8))) ||
+        (oPhone.length >= 8 && cleanPhone.endsWith(oPhone.slice(-8)));
+
+      return idMatches && phoneMatches;
+    });
+
+    return matched || null;
+  },
+
+  // ADMIN: Get all orders
+  async getOrders(): Promise<Order[]> {
+    if (isFirebaseConfigured && db) {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'orders'));
+        if (!querySnapshot.empty) {
+          const orders = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+          orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          return orders;
+        }
+      } catch (e) {
+        console.warn('Firestore fetch orders failed, falling back to localStorage', e);
+      }
+    }
+
+    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    return localData ? JSON.parse(localData) : [SAMPLE_DEMO_ORDER];
+  },
+
+  // ADMIN: Update order status
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+    noteBn?: string,
+    noteEn?: string
+  ): Promise<boolean> {
+    const orders = await this.getOrders();
+    const now = new Date();
+    const updated = orders.map((o) => {
+      if (o.id === orderId) {
+        const history = o.statusHistory || [];
+        history.push({
+          status,
+          timestamp: now.toLocaleString('bn-BD'),
+          noteBn: noteBn || `স্ট্যাটাস পরিবর্তন: ${status}`,
+          noteEn: noteEn || `Status changed to: ${status}`,
+        });
+        return {
+          ...o,
+          status,
+          statusHistory: history,
+        };
+      }
+      return o;
+    });
+
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const targetOrder = updated.find((o) => o.id === orderId);
+        if (targetOrder) {
+          await updateDoc(doc(db, 'orders', orderId), {
+            status,
+            statusHistory: targetOrder.statusHistory,
+          });
+        }
+      } catch (e) {
+        console.warn('Could not update order status in Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Add new product
+  async addProduct(productData: Omit<Product, 'id' | 'createdAt'>): Promise<Product> {
+    const newId = `xora-${Date.now()}`;
+    const newProduct: Product = {
+      ...productData,
+      id: newId,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    const products = await this.getProducts();
+    products.unshift(newProduct);
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'products', newId), newProduct);
+      } catch (e) {
+        console.warn('Could not save product to Firestore:', e);
+      }
+    }
+
+    return newProduct;
+  },
+
+  // ADMIN: Update product
+  async updateProduct(id: string, updates: Partial<Product>): Promise<boolean> {
+    const products = await this.getProducts();
+    const updated = products.map((p) => (p.id === id ? { ...p, ...updates } : p));
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'products', id), updates);
+      } catch (e) {
+        console.warn('Could not update product in Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Delete product
+  async deleteProduct(id: string): Promise<boolean> {
+    const products = await this.getProducts();
+    const filtered = products.filter((p) => p.id !== id);
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await deleteDoc(doc(db, 'products', id));
+      } catch (e) {
+        console.warn('Could not delete product from Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Add category
+  async addCategory(categoryData: Omit<Category, 'id'>): Promise<Category> {
+    const newId = categoryData.slug || `cat-${Date.now()}`;
+    const newCategory: Category = {
+      ...categoryData,
+      id: newId,
+    };
+
+    const categories = await this.getCategories();
+    categories.push(newCategory);
+    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'categories', newId), newCategory);
+      } catch (e) {
+        console.warn('Could not save category to Firestore:', e);
+      }
+    }
+
+    return newCategory;
+  },
+
+  // ADMIN: Update category
+  async updateCategory(id: string, updates: Partial<Category>): Promise<boolean> {
+    const categories = await this.getCategories();
+    const updated = categories.map((c) => (c.id === id ? { ...c, ...updates } : c));
+    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(updated));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'categories', id), updates);
+      } catch (e) {
+        console.warn('Could not update category in Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Delete category
+  async deleteCategory(id: string): Promise<boolean> {
+    const categories = await this.getCategories();
+    const filtered = categories.filter((c) => c.id !== id);
+    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(filtered));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await deleteDoc(doc(db, 'categories', id));
+      } catch (e) {
+        console.warn('Could not delete category from Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Add Review
+  async addReview(reviewData: Omit<CustomerReview, 'id' | 'date'>): Promise<CustomerReview> {
+    const newId = `rev-${Date.now()}`;
+    const newReview: CustomerReview = {
+      ...reviewData,
+      id: newId,
+      date: new Date().toISOString().split('T')[0],
+    };
+
+    const reviews = await this.getReviews();
+    reviews.unshift(newReview);
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'reviews', newId), newReview);
+      } catch (e) {
+        console.warn('Could not save review to Firestore:', e);
+      }
+    }
+
+    return newReview;
+  },
+
+  // ADMIN: Update Review
+  async updateReview(id: string, updates: Partial<CustomerReview>): Promise<boolean> {
+    const reviews = await this.getReviews();
+    const updated = reviews.map((r) => (r.id === id ? { ...r, ...updates } : r));
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(updated));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'reviews', id), updates);
+      } catch (e) {
+        console.warn('Could not update review in Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Delete Review
+  async deleteReview(id: string): Promise<boolean> {
+    const reviews = await this.getReviews();
+    const filtered = reviews.filter((r) => r.id !== id);
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(filtered));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await deleteDoc(doc(db, 'reviews', id));
+      } catch (e) {
+        console.warn('Could not delete review from Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Update Store Settings
+  async updateSettings(settings: StoreSettings): Promise<boolean> {
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'settings', 'general'), settings);
+      } catch (e) {
+        console.warn('Could not update settings in Firestore:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: One-time import sample data to Firestore with HTTPS bag images
+  async importSampleDataToFirestore(): Promise<{
+    success: boolean;
+    counts: { products: number; categories: number; reviews: number };
+  }> {
+    if (!isFirebaseConfigured || !db) {
+      throw new Error(
+        'Firebase is not configured yet. Please configure VITE_FIREBASE_API_KEY, VITE_FIREBASE_PROJECT_ID, etc. in your environment variables to import to Firestore.'
+      );
+    }
+
+    const unsplashBagImages: Record<string, string[]> = {
+      'xora-bag-101': [
+        'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-102': [
+        'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-103': [
+        'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-104': [
+        'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-105': [
+        'https://images.unsplash.com/photo-1563903530908-afdd155d057a?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-106': [
+        'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-107': [
+        'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80',
+      ],
+      'xora-bag-108': [
+        'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
+      ],
+    };
+
+    const categoryImages: Record<string, string> = {
+      'handbags': 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80',
+      'tote-bags': 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
+      'backpacks': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+      'shoulder-bags': 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80',
+      'clutch-wallets': 'https://images.unsplash.com/photo-1563903530908-afdd155d057a?auto=format&fit=crop&w=800&q=80',
+      'travel-bags': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+    };
+
+    // 1. Categories
+    for (const cat of DEFAULT_CATEGORIES) {
+      const cleanCat = {
+        ...cat,
+        image: categoryImages[cat.id] || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80',
+      };
+      await setDoc(doc(db, 'categories', cat.id), cleanCat);
+    }
+
+    // 2. Products
+    for (const prod of DEFAULT_PRODUCTS) {
+      const cleanProd = {
+        ...prod,
+        images: unsplashBagImages[prod.id] || [
+          'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80',
+        ],
+      };
+      await setDoc(doc(db, 'products', prod.id), cleanProd);
+    }
+
+    // 3. Reviews
+    for (const rev of DEFAULT_REVIEWS) {
+      await setDoc(doc(db, 'reviews', rev.id), rev);
+    }
+
+    // 4. Settings
+    await setDoc(doc(db, 'settings', 'general'), DEFAULT_SETTINGS);
+
+    // Sync local state as well
+    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+
+    return {
+      success: true,
+      counts: {
+        products: DEFAULT_PRODUCTS.length,
+        categories: DEFAULT_CATEGORIES.length,
+        reviews: DEFAULT_REVIEWS.length,
+      },
+    };
+  },
+
+  // ADMIN: Delete all products from Firestore & localStorage to start completely clean
+  async deleteAllProducts(): Promise<{ success: boolean; deletedCount: number }> {
+    let deletedCount = 0;
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const snapshot = await getDocs(collection(db, 'products'));
+        for (const d of snapshot.docs) {
+          await deleteDoc(doc(db, 'products', d.id));
+          deletedCount++;
+        }
+      } catch (e) {
+        console.error('Error deleting products from Firestore:', e);
+        throw e;
+      }
+    }
+
+    // Clear products in localStorage
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+
+    return { success: true, deletedCount };
+  },
+};
