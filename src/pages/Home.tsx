@@ -98,14 +98,14 @@ export const Home: React.FC = () => {
             <div className="lg:col-span-5 relative">
               <div className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-[#E5DDD0]">
                 <img
-                  src="/images/product_leather_bag_1792674216295.jpg"
-                  alt="Xora Lifestyle Handcrafted Leather Bags"
-                  className="w-full h-full object-cover object-center"
+                  src="/images/hero_luxury_bag_model_1792783113964.jpg"
+                  alt="Xora Lifestyle Premium Designer Bags"
+                  className="w-full h-full object-cover object-top"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
                     const target = e.currentTarget as HTMLImageElement;
                     target.onerror = null;
-                    target.src = 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1000&q=80';
+                    target.src = '/src/assets/images/hero_luxury_bag_model_1792783113964.jpg';
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end p-6">
