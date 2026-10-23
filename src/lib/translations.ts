@@ -4,7 +4,7 @@ export const translations = {
     brandName: 'Xora Lifestyle',
     brandSub: 'জোড়া লাইফস্টাইল',
     tagline: 'প্রিমিয়াম চামড়া ও ক্যানভাস ব্যাগের বিশ্বস্ত ঠিকানা',
-    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৭০, ঢাকার বাইরে ৳১৩০ | ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি!',
+    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৮০, ঢাকার বাইরে ৳১৫০ | ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি!',
     
     // Navigation
     navHome: 'হোম',
@@ -91,8 +91,8 @@ export const translations = {
     district: 'জেলা নির্বাচন করুন',
     selectDistrict: 'আপনার জেলা বেছে নিন',
     deliveryMethod: 'ডেলিভারি এলাকা ও চার্জ',
-    insideDhaka: 'ঢাকার ভেতরে (৳৭০)',
-    outsideDhaka: 'ঢাকার বাইরে (৳১৩০)',
+    insideDhaka: 'ঢাকার ভেতরে',
+    outsideDhaka: 'ঢাকার বাইরে',
     paymentMethod: 'পেমেন্ট মেথড নির্বাচন করুন',
     paymentCod: 'ক্যাশ অন ডেলিভারি (Cash on Delivery)',
     paymentCodDesc: 'পণ্য হাতে পেয়ে ডেলিভারিম্যানকে ক্যাশ টাকা প্রদান করবেন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।',
@@ -172,7 +172,7 @@ export const translations = {
     brandName: 'Xora Lifestyle',
     brandSub: 'Handcrafted Heritage Bags',
     tagline: 'Handcrafted Leather & Everyday Bags for Bangladesh',
-    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳70, Outside Dhaka ৳130 | Free Shipping on Orders over ৳3,000!',
+    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳80, Outside Dhaka ৳150 | Free Shipping on Orders over ৳3,000!',
     
     // Navigation
     navHome: 'Home',
@@ -259,8 +259,8 @@ export const translations = {
     district: 'Select District',
     selectDistrict: 'Choose your district',
     deliveryMethod: 'Delivery Area & Rate',
-    insideDhaka: 'Inside Dhaka (৳70)',
-    outsideDhaka: 'Outside Dhaka (৳130)',
+    insideDhaka: 'Inside Dhaka',
+    outsideDhaka: 'Outside Dhaka',
     paymentMethod: 'Select Payment Method',
     paymentCod: 'Cash on Delivery (COD)',
     paymentCodDesc: 'Pay cash to the delivery representative when you receive your package. No advance required.',

@@ -17,7 +17,8 @@ import { ProductCard } from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { storeService } from '../services/storeService';
-import { Product } from '../types';
+import { DEFAULT_SETTINGS } from '../lib/constants';
+import { Product, StoreSettings } from '../types';
 
 export const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -420,9 +421,18 @@ export const ProductDetails: React.FC = () => {
               <div className="text-xs sm:text-sm text-[#4A433A] leading-relaxed max-w-2xl space-y-3">
                 <p>{t('shippingReturnContent')}</p>
                 <ul className="list-disc pl-5 space-y-1.5 text-xs">
-                  <li><strong>ঢাকার ভেতরে ডেলিভারি:</strong> ৳৭০ (২-৩ কার্যদিবস)</li>
-                  <li><strong>ঢাকার বাইরে সমগ্র বাংলাদেশে:</strong> ৳১৩০ (৩-৫ কার্যদিবস)</li>
-                  <li><strong>ক্যাশ অন ডেলিভারি:</strong> পণ্য বুঝে পেয়ে মূল্য পরিশোধ করুন</li>
+                  <li>
+                    <strong>{language === 'bn' ? 'ঢাকার ভেতরে ডেলিভারি:' : 'Inside Dhaka Delivery:'}</strong>{' '}
+                    {formatPrice(settings.insideDhakaCharge)} ({language === 'bn' ? '২-৩ কার্যদিবস' : '2-3 business days'})
+                  </li>
+                  <li>
+                    <strong>{language === 'bn' ? 'ঢাকার বাইরে সমগ্র বাংলাদেশে:' : 'Outside Dhaka:'}</strong>{' '}
+                    {formatPrice(settings.outsideDhakaCharge)} ({language === 'bn' ? '৩-৫ কার্যদিবস' : '3-5 business days'})
+                  </li>
+                  <li>
+                    <strong>{language === 'bn' ? 'ক্যাশ অন ডেলিভারি:' : 'Cash on Delivery:'}</strong>{' '}
+                    {language === 'bn' ? 'পণ্য বুঝে পেয়ে মূল্য পরিশোধ করুন' : 'Pay when you receive the product'}
+                  </li>
                 </ul>
               </div>
             )}

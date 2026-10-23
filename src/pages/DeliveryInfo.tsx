@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Truck, MapPin, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { storeService } from '../services/storeService';
+import { DEFAULT_SETTINGS } from '../lib/constants';
+import { StoreSettings } from '../types';
 
 export const DeliveryInfo: React.FC = () => {
-  const { language, t } = useLanguage();
+  const { language, formatPrice, t } = useLanguage();
+  const [settings, setSettings] = useState<StoreSettings>(DEFAULT_SETTINGS);
+
+  useEffect(() => {
+    storeService.getSettings().then((data) => {
+      if (data) setSettings(data);
+    });
+  }, []);
 
   return (
     <div className="py-10 md:py-16 bg-[#FAF7F2] min-h-screen">
@@ -32,7 +42,9 @@ export const DeliveryInfo: React.FC = () => {
                 <span className="px-3 py-1 bg-[#FAF0F2] text-[#962D3E] text-xs font-bold rounded-lg">
                   {language === 'bn' ? 'ঢাকার ভেতরে' : 'Inside Dhaka'}
                 </span>
-                <span className="text-xl font-bold text-[#1E1E1E]">৳৭০</span>
+                <span className="text-xl font-bold text-[#1E1E1E]">
+                  {formatPrice(settings.insideDhakaCharge)}
+                </span>
               </div>
               <h2 className="font-bold text-base text-[#1E1E1E] mb-2">
                 {language === 'bn' ? 'ঢাকা মেট্রোপলিটন এলাকা' : 'Dhaka Metropolitan Zone'}
@@ -56,7 +68,9 @@ export const DeliveryInfo: React.FC = () => {
                 <span className="px-3 py-1 bg-[#FAF0F2] text-[#962D3E] text-xs font-bold rounded-lg">
                   {language === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}
                 </span>
-                <span className="text-xl font-bold text-[#1E1E1E]">৳১৩০</span>
+                <span className="text-xl font-bold text-[#1E1E1E]">
+                  {formatPrice(settings.outsideDhakaCharge)}
+                </span>
               </div>
               <h2 className="font-bold text-base text-[#1E1E1E] mb-2">
                 {language === 'bn' ? 'বাংলাদেশের অন্য সকল ৬৩টি জেলা' : 'Remaining 63 Districts'}
@@ -83,12 +97,14 @@ export const DeliveryInfo: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-base">
-                {language === 'bn' ? '৩,০০০ টাকার কেনাকাটায় ফ্রি ডেলিভারি!' : 'Free Shipping on orders above ৳3,000!'}
+                {language === 'bn'
+                  ? `${formatPrice(settings.freeShippingMinAmount || 3000)} টাকার কেনাকাটায় ফ্রি ডেলিভারি!`
+                  : `Free Shipping on orders above ${formatPrice(settings.freeShippingMinAmount || 3000)}!`}
               </h3>
               <p className="text-xs text-white/80">
                 {language === 'bn'
-                  ? 'যেকোনো পণ্যের অর্ডারে মোট মূল্য ৩,০০০ টাকা বা তার বেশি হলে সারা বাংলাদেশে সম্পূর্ণ ফ্রি হোম ডেলিভারি।'
-                  : 'Nationwide zero shipping fee automatically applied at checkout for orders over ৳3,000.'}
+                  ? `যেকোনো পণ্যের অর্ডারে মোট মূল্য ${formatPrice(settings.freeShippingMinAmount || 3000)} বা তার বেশি হলে সারা বাংলাদেশে সম্পূর্ণ ফ্রি হোম ডেলিভারি।`
+                  : `Nationwide zero shipping fee automatically applied at checkout for orders over ${formatPrice(settings.freeShippingMinAmount || 3000)}.`}
               </p>
             </div>
           </div>

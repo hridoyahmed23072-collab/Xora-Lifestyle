@@ -20,36 +20,51 @@ export const About: React.FC = () => {
           </h1>
           <p className="text-sm sm:text-base text-[#61594F] max-w-xl mx-auto leading-relaxed">
             {language === 'bn'
-              ? 'মাস্টার কারিগরদের নিখুঁত হাতে গড়া প্রিমিয়াম লেদার ও দৈনন্দিন ব্যাগের শীর্ষ বাংলাদেশি ব্র্যান্ড।'
-              : 'Connecting generations of master Bangladeshi leather artisans with refined modern bag essentials.'}
+              ? 'সরাসরি চীন থেকে আমদানিকৃত বিশ্বমানের এক্সক্লুসিভ ডিজাইন ও প্রিমিয়াম কোয়ালিটি ব্যাগের শীর্ষ ব্র্যান্ড।'
+              : 'Directly imported world-class exclusive designs and premium quality bags for everyday elegance.'}
           </p>
         </div>
 
         {/* Hero Visual Card */}
         <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border border-[#E7E0D3] shadow-md mb-12">
           <img
-            src="/src/assets/images/product_leather_bag_1792674216295.jpg"
+            src="/images/product_leather_bag_1792674216295.jpg"
             alt="Xora Lifestyle Handcrafted Leather Bags"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              target.onerror = null;
+              target.src = 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80';
+            }}
           />
         </div>
 
         {/* Narrative Section */}
-        <div className="bg-white p-6 sm:p-10 rounded-2xl border border-[#E7E0D3] shadow-sm mb-12 flex flex-col gap-6 text-xs sm:text-sm text-[#474036] leading-relaxed">
+        <div className="bg-white p-6 sm:p-10 rounded-2xl border border-[#E7E0D3] shadow-sm mb-12 flex flex-col gap-5 text-xs sm:text-sm text-[#474036] leading-relaxed">
           <h2 className="font-serif-luxury text-xl sm:text-2xl font-bold text-[#1E1E1E]">
             {language === 'bn' ? 'যেভাবে আমাদের পথচলা শুরু' : 'How It All Began'}
           </h2>
+          <h3 className="text-sm sm:text-base font-bold text-[#962D3E] -mt-1">
+            {language === 'bn'
+              ? 'Xora Lifestyle — সরাসরি সেরা প্রিমিয়াম আমদানির নিশ্চয়তা'
+              : 'Xora Lifestyle — Guaranteed Premium Direct Import'}
+          </h3>
           <p>
             {language === 'bn'
-              ? 'Xora Lifestyle-এর জন্ম একটি বিশ্বস্ত ফেসবুক পেজ থেকে। আমাদের লক্ষ্য ছিল অত্যন্ত স্পষ্ট—বিদেশি সস্তা রেক্সিন ও ক্ষণস্থায়ী সিন্থেটিক ব্যাগের পরিবর্তে বাংলাদেশের সেরা ট্যানারির ফুল-গ্রেইন চামড়া এবং মজবুত ওয়াটার-রেজিস্ট্যান্ট ক্যানভাস দিয়ে এমন সব ব্যাগ তৈরি করা, যা দেখতে যেমন চমৎকার তেমনি বছরের পর বছর টিকে থাকবে।'
-              : 'Xora Lifestyle began as a dedicated community page on Facebook. Our mission was uncompromising: to replace cheap synthetic pleather bags with genuine, ethically sourced full-grain leather and heavy-duty canvas bags that age with dignity and last for years.'}
+              ? 'আমরা কোনো লোকাল প্রস্তুতকারক নই; Xora Lifestyle সরাসরি চীন থেকে বিশ্বমানের সেরা ও প্রিমিয়াম কোয়ালিটির প্রোডাক্ট ইম্পোর্ট (Import) করে থাকে। আমাদের একমাত্র লক্ষ্য—আপনাকে আন্তর্জাতিক মানের এক্সক্লুসিভ ডিজাইন ও সেরা ফিনিশিংয়ের অ্যাক্সেস দেওয়া।'
+              : 'We are not a local manufacturer; Xora Lifestyle directly imports world-class premium quality products from China. Our primary focus is granting you direct access to international exclusive designs and superior craftsmanship.'}
           </p>
           <p>
             {language === 'bn'
-              ? 'আমাদের প্রতিটি হ্যান্ডব্যাগ, টোট, ব্যাকপ্যাক ও ট্রাভেল ব্যাগে রয়েছে দক্ষ কারিগরের হাতের যত্ন, মজবুত স্টিচিং এবং টেকসই ব্রাস ফিটিংস। আমরা কোনো ধরনের গণ-উৎপাদন (mass production) করি না; বরং ছোট ছোট ব্যাচে সততা ও নিষ্ঠার সাথে প্রতিটি ব্যাগের প্রিমিয়াম কোয়ালিটি নিশ্চিত করি।'
-              : 'Each handbag, commuter backpack, structured tote, and travel duffel is engineered with reinforced stress points, Japanese YKK zippers, and solid brass hardware. We produce in intentional small batches to ensure unmatched quality control.'}
+              ? 'আমাদের প্রতিটি ব্যাগ, টোট ও অ্যাক্সেসরিজ সরাসরি সোর্সিংয়ের সময় কঠোরভাবে কোয়ালিটি চেক করা হয়, যাতে সস্তা বা নরমাল কোনো প্রোডাক্ট আপনার হাতে না পৌঁছায়। কোনো থার্ড-পার্টি নয়, সরাসরি ইম্পোর্ট করার কারণে আমরা নিশ্চিত করি আসল প্রিমিয়াম কোয়ালিটি ও দীর্ঘস্থায়িত্ব।'
+              : 'Every bag, tote, and accessory undergoes rigorous direct-sourcing quality control, ensuring sub-par or ordinary products never reach you. With no middlemen, our direct imports guarantee authentic premium grade durability and longevity.'}
           </p>
+          <div className="mt-1 pt-3.5 border-t border-[#F0EAE1] bg-[#FAF7F2] p-3.5 rounded-xl text-xs sm:text-sm font-semibold text-[#7D2232] text-center sm:text-left">
+            {language === 'bn'
+              ? '💎 সেরা আন্তর্জাতিক ডিজাইন | ✈️ সরাসরি চীন থেকে ইম্পোর্টেড | 🛡️ ১০০% কোয়ালিটি এস্যুরেন্স'
+              : '💎 International Exclusive Design | ✈️ Directly Imported from China | 🛡️ 100% Quality Assurance'}
+          </div>
         </div>
 
         {/* 4 Core Pillars */}

@@ -11,9 +11,18 @@ import {
   Trash2,
   UploadCloud,
   AlertTriangle,
+  Cloud,
+  Copy,
+  ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { storeService } from '../services/storeService';
-import { isFirebaseConfigured } from '../lib/firebase';
+import {
+  isFirebaseConfigured,
+  firebaseConfig,
+  saveFirebaseConfig,
+  clearFirebaseConfig,
+} from '../lib/firebase';
 import { StoreSettings } from '../types';
 
 export const AdminSettings: React.FC = () => {
@@ -26,6 +35,16 @@ export const AdminSettings: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Firebase Config State
+  const [fbApiKey, setFbApiKey] = useState(firebaseConfig.apiKey || '');
+  const [fbProjectId, setFbProjectId] = useState(firebaseConfig.projectId || '');
+  const [fbAuthDomain, setFbAuthDomain] = useState(firebaseConfig.authDomain || '');
+  const [fbStorageBucket, setFbStorageBucket] = useState(firebaseConfig.storageBucket || '');
+  const [fbMessagingSenderId, setFbMessagingSenderId] = useState(firebaseConfig.messagingSenderId || '');
+  const [fbAppId, setFbAppId] = useState(firebaseConfig.appId || '');
+  const [fbPasteSnippet, setFbPasteSnippet] = useState('');
+  const [copiedVercel, setCopiedVercel] = useState(false);
 
   useEffect(() => {
     storeService.getSettings().then((data) => {

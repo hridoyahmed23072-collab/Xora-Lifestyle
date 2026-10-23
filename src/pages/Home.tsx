@@ -98,10 +98,15 @@ export const Home: React.FC = () => {
             <div className="lg:col-span-5 relative">
               <div className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-[#E5DDD0]">
                 <img
-                  src="/src/assets/images/product_leather_bag_1792674216295.jpg"
+                  src="/images/product_leather_bag_1792674216295.jpg"
                   alt="Xora Lifestyle Handcrafted Leather Bags"
                   className="w-full h-full object-cover object-center"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1000&q=80';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end p-6">
                   <div className="text-white">
@@ -156,6 +161,11 @@ export const Home: React.FC = () => {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                     loading="lazy"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80';
+                    }}
                   />
                 </div>
                 <div className="p-3.5 flex flex-col">
@@ -282,20 +292,30 @@ export const Home: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="aspect-square rounded-xl overflow-hidden shadow-sm">
                 <img
-                  src="/src/assets/images/bag_commuter_backpack_1792675617985.jpg"
+                  src="/images/bag_commuter_backpack_1792675617985.jpg"
                   alt="Leather Commuter Backpack"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                   loading="lazy"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80';
+                  }}
                 />
               </div>
               <div className="aspect-square rounded-xl overflow-hidden shadow-sm mt-6">
                 <img
-                  src="/src/assets/images/bag_crescent_shoulder_1792675618851.jpg"
+                  src="/images/bag_crescent_shoulder_1792675618851.jpg"
                   alt="Artisanal Crescent Shoulder Bag"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                   loading="lazy"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80';
+                  }}
                 />
               </div>
             </div>

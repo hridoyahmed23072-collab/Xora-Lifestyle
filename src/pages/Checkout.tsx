@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -11,16 +11,14 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { BANGLADESH_DISTRICTS } from '../lib/constants';
+import { BANGLADESH_DISTRICTS, DEFAULT_SETTINGS } from '../lib/constants';
 import { storeService } from '../services/storeService';
-import { DeliveryZone, PaymentMethod } from '../types';
-import { useSettings } from '../hooks/useSettings';
+import { DeliveryZone, PaymentMethod, StoreSettings } from '../types';
 
 export const Checkout: React.FC = () => {
   const { cart, subtotal, clearCart } = useCart();
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
-  const settings = useSettings();
 
   // Form State
   const [customerName, setCustomerName] = useState('');
@@ -37,14 +35,54 @@ export const Checkout: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Store Settings (Dynamic delivery charges & wallet numbers)
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    try {
+      const cached = localStorage.getItem('xora_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.insideDhakaCharge === 70) parsed.insideDhakaCharge = 80;
+        if (parsed.outsideDhakaCharge === 130) parsed.outsideDhakaCharge = 150;
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      }
+    } catch {}
+    return DEFAULT_SETTINGS;
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    storeService.getSettings().then((loaded) => {
+      if (isMounted && loaded) {
+        setSettings(loaded);
+      }
+    });
+
+    const handleSync = () => {
+      storeService.getSettings().then((loaded) => {
+        if (isMounted && loaded) setSettings(loaded);
+      });
+    };
+
+    window.addEventListener('xora_settings_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('xora_settings_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
   // Pricing calculation
-  const freeThreshold = settings.freeShippingMinAmount || 0;
-  const isFreeShipping = freeThreshold > 0 && subtotal >= freeThreshold;
+  const insideCharge = settings.insideDhakaCharge ?? 80;
+  const outsideCharge = settings.outsideDhakaCharge ?? 150;
+  const freeShippingThreshold = settings.freeShippingMinAmount ?? 3000;
+
+  const isFreeShipping = subtotal >= freeShippingThreshold;
   const deliveryCharge = isFreeShipping
     ? 0
     : deliveryZone === 'inside_dhaka'
-    ? settings.insideDhakaCharge
-    : settings.outsideDhakaCharge;
+    ? insideCharge
+    : outsideCharge;
   const grandTotal = subtotal + deliveryCharge;
 
   // Handle District Change
@@ -317,12 +355,16 @@ export const Checkout: React.FC = () => {
                         className="text-[#962D3E] focus:ring-[#962D3E]"
                       />
                       <div>
-                        <p className="text-xs font-bold text-[#1E1E1E]">{t('insideDhaka')}</p>
-                        <p className="text-[11px] text-[#786F63]">২-৩ কার্যদিবস</p>
+                        <p className="text-xs font-bold text-[#1E1E1E]">
+                          {t('insideDhaka')} ({formatPrice(insideCharge)})
+                        </p>
+                        <p className="text-[11px] text-[#786F63]">
+                          {language === 'bn' ? '২-৩ কার্যদিবস' : '2-3 business days'}
+                        </p>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#962D3E]">
-                      {isFreeShipping ? 'ফ্রি' : formatPrice(settings.insideDhakaCharge)}
+                      {isFreeShipping ? (language === 'bn' ? 'ফ্রি' : 'Free') : formatPrice(insideCharge)}
                     </span>
                   </label>
 
@@ -342,12 +384,16 @@ export const Checkout: React.FC = () => {
                         className="text-[#962D3E] focus:ring-[#962D3E]"
                       />
                       <div>
-                        <p className="text-xs font-bold text-[#1E1E1E]">{t('outsideDhaka')}</p>
-                        <p className="text-[11px] text-[#786F63]">৩-৫ কার্যদিবস</p>
+                        <p className="text-xs font-bold text-[#1E1E1E]">
+                          {t('outsideDhaka')} ({formatPrice(outsideCharge)})
+                        </p>
+                        <p className="text-[11px] text-[#786F63]">
+                          {language === 'bn' ? '৩-৫ কার্যদিবস' : '3-5 business days'}
+                        </p>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#962D3E]">
-                      {isFreeShipping ? 'ফ্রি' : formatPrice(settings.outsideDhakaCharge)}
+                      {isFreeShipping ? (language === 'bn' ? 'ফ্রি' : 'Free') : formatPrice(outsideCharge)}
                     </span>
                   </label>
                 </div>
@@ -444,7 +490,7 @@ export const Checkout: React.FC = () => {
                     <div className="p-3 bg-white rounded-lg border border-[#F0BED2] flex items-center justify-between">
                       <div>
                         <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
-                        <p className="text-sm font-bold text-[#E2136E] tracking-wider">{settings.bkashNumber}</p>
+                        <p className="text-sm font-bold text-[#E2136E] tracking-wider">{settings.bkashNumber || '01711234567'}</p>
                       </div>
                       <span className="text-[11px] text-[#696156] font-medium bg-[#FFF0F5] px-2 py-1 rounded">
                         পার্সোনাল / সেন্ড মানি
@@ -520,7 +566,7 @@ export const Checkout: React.FC = () => {
                     <div className="p-3 bg-white rounded-lg border border-[#F8CFAC] flex items-center justify-between">
                       <div>
                         <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
-                        <p className="text-sm font-bold text-[#F7931E] tracking-wider">{settings.nagadNumber}</p>
+                        <p className="text-sm font-bold text-[#F7931E] tracking-wider">{settings.nagadNumber || '01711234567'}</p>
                       </div>
                       <span className="text-[11px] text-[#696156] font-medium bg-[#FFF8F0] px-2 py-1 rounded">
                         পার্সোনাল / সেন্ড মানি

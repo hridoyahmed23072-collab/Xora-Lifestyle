@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | { email: string; uid: string; displayName?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const targetAdminEmail = (ADMIN_EMAIL || 'admin@xoralifestyle.com').toLowerCase().trim();
+  const targetAdminEmail = (ADMIN_EMAIL || 'hridoyahmed23072@gmail.com').toLowerCase().trim();
 
   useEffect(() => {
     if (isFirebaseConfigured && auth) {
@@ -39,14 +39,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const savedDemo = localStorage.getItem(DEMO_AUTH_STORAGE_KEY);
         if (savedDemo) {
-          setUser(JSON.parse(savedDemo));
+          const parsed = JSON.parse(savedDemo);
+          if (parsed?.email && parsed.email.toLowerCase().trim() === targetAdminEmail) {
+            setUser(parsed);
+          } else {
+            // Immediately purge any old or unauthorized cached session (e.g. admin@xoralifestyle.com)
+            localStorage.removeItem(DEMO_AUTH_STORAGE_KEY);
+            setUser(null);
+          }
         }
       } catch (e) {
         console.warn('Error reading demo auth state:', e);
       }
       setLoading(false);
     }
-  }, []);
+  }, [targetAdminEmail]);
 
   const isAdmin = Boolean(
     user && user.email && user.email.toLowerCase().trim() === targetAdminEmail
@@ -59,7 +66,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (cleanEmail !== targetAdminEmail) {
       return {
         success: false,
-        error: `Only authorized administrator email (${targetAdminEmail}) is permitted to access the control panel.`,
+        error: `Access Denied. Only the authorized administrator account (${targetAdminEmail}) is permitted to log in.`,
+      };
+    }
+
+    if (!pass || pass.trim().length === 0) {
+      return {
+        success: false,
+        error: 'Please enter your password.',
       };
     }
 
@@ -75,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
     } else {
-      // Demo Mode login: accepts any password (or 'admin123') for the admin email
+      // Demo Mode login: accepts login for targetAdminEmail
       const demoUser = {
         email: targetAdminEmail,
         uid: 'demo-admin-uid-101',

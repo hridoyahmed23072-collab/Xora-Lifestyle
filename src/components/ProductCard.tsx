@@ -14,7 +14,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  const primaryImage = product.images[0] || '/src/assets/images/hero_lifestyle_bangladesh_1792674215361.jpg';
+  const primaryImage = product.images[0] || '/images/product_leather_bag_1792674216295.jpg';
   const name = language === 'bn' ? product.nameBn : product.nameEn;
   const categoryName = language === 'bn' ? product.categoryNameBn : product.categoryNameEn;
 
@@ -73,6 +73,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
           referrerPolicy="no-referrer"
           loading="lazy"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            target.onerror = null;
+            target.src = 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80';
+          }}
         />
 
         {/* Stock / Sale Notice (Restrained, quiet unboxed text tag) */}

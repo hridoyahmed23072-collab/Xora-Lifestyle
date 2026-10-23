@@ -39,7 +39,7 @@ export const AdminCategories: React.FC = () => {
     setSlug('');
     setDescriptionBn('');
     setDescriptionEn('');
-    setImage('/src/assets/images/product_leather_bag_1792674216295.jpg');
+    setImage('/images/product_leather_bag_1792674216295.jpg');
     setIsModalOpen(true);
   };
 
@@ -84,7 +84,7 @@ export const AdminCategories: React.FC = () => {
       slug: slug.trim() || nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       descriptionBn,
       descriptionEn,
-      image: image || '/src/assets/images/product_leather_bag_1792674216295.jpg',
+      image: image || '/images/product_leather_bag_1792674216295.jpg',
       itemCount: editingCategory?.itemCount || 0,
     };
 

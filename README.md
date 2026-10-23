@@ -40,7 +40,7 @@ A production-grade, mobile-first e-commerce web platform for **Xora Lifestyle** 
 ---
 
 ### 🛡️ Admin Portal (`/admin`)
-- **Protected Access**: Route-level protection requiring login with the authorized email (`VITE_ADMIN_EMAIL`, default: `admin@xoralifestyle.com`).
+- **Protected Access**: Route-level protection requiring login with the authorized email (`VITE_ADMIN_EMAIL`, default: `hridoyahmed23072@gmail.com`).
 - **Demo Admin Login**: In demo mode (when Firebase env vars are missing), a 1-click login allows instant exploration and testing of the admin suite.
 - **Executive Dashboard**:
   - Real-time revenue total in BDT (`৳`).
@@ -72,8 +72,8 @@ A production-grade, mobile-first e-commerce web platform for **Xora Lifestyle** 
 | Feature | DEMO MODE (Default) | FIREBASE MODE |
 | :--- | :--- | :--- |
 | **Activation** | Active when Firebase environment variables are empty | Automatically activates when `VITE_FIREBASE_*` keys are filled in `.env` |
-| **Data Store** | Seeded `localStorage` with 4 categories, 8 artisan products, 3 reviews, sample orders | Real-time Firebase Firestore database (`products`, `categories`, `orders`, `reviews`, `settings`) |
-| **Admin Login** | 1-Click quick login as `admin@xoralifestyle.com` | Firebase Authentication (Email / Password) restricted to `VITE_ADMIN_EMAIL` |
+| **Data Store** | Seeded `localStorage` with 6 bag categories, 8 artisan bag products, reviews, sample orders | Real-time Firebase Firestore database (`products`, `categories`, `orders`, `reviews`, `settings`) |
+| **Admin Login** | 1-Click quick login as `hridoyahmed23072@gmail.com` | Firebase Authentication (Email / Password) restricted to `VITE_ADMIN_EMAIL` |
 | **Images** | High-fidelity local assets + base64 data URLs | Cloudinary unsigned CDN upload or remote image URLs |
 
 ---
@@ -90,7 +90,7 @@ VITE_FIREBASE_PROJECT_ID="xora-lifestyle"
 VITE_FIREBASE_STORAGE_BUCKET="xora-lifestyle.appspot.com"
 VITE_FIREBASE_MESSAGING_SENDER_ID="1234567890"
 VITE_FIREBASE_APP_ID="1:1234567890:web:abcdef"
-VITE_ADMIN_EMAIL="admin@xoralifestyle.com"
+VITE_ADMIN_EMAIL="hridoyahmed23072@gmail.com"
 
 # Cloudinary Unsigned Image Upload (Optional: base64 fallback in demo mode)
 VITE_CLOUDINARY_CLOUD_NAME="your_cloud_name"

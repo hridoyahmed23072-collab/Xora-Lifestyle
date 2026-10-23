@@ -76,7 +76,7 @@ export const AdminLogin: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@xoralifestyle.com"
+                placeholder="hridoyahmed23072@gmail.com"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl text-xs text-[#1E1E1E] focus:bg-white focus:outline-none focus:border-[#962D3E]"
               />
             </div>
@@ -118,24 +118,23 @@ export const AdminLogin: React.FC = () => {
           </button>
         </form>
 
-        {/* 1-Click Demo Login Helper */}
-        <div className="mt-6 pt-5 border-t border-[#F0EAE0] flex flex-col gap-2.5">
+        {/* Secure Authorization Info */}
+        <div className="mt-6 pt-5 border-t border-[#F0EAE0] flex flex-col gap-2">
           <div className="flex items-center justify-between text-[11px] text-[#7A7165]">
-            <span>{isFirebaseConfigured ? 'Firebase Auth Mode' : 'Demo Mode Active'}</span>
+            <span>{isFirebaseConfigured ? 'Live Firebase Security' : 'Demo Mode (Offline)'}</span>
             <span className="text-[#2E7D32] font-semibold flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Protected
+              Restricted
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="w-full py-2.5 px-4 bg-[#FAF7F2] hover:bg-[#F2ECE3] text-[#3A352F] border border-[#D5CCC0] rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#C49A45]" />
-            <span>1-Click Demo Admin Login ({adminEmail})</span>
-          </button>
+          {!isFirebaseConfigured && (
+            <div className="p-3 bg-[#FFF9E6] border border-[#F0DFA8] rounded-xl text-[11px] text-[#805B00]">
+              <p className="font-semibold mb-0.5">Demo Admin Access:</p>
+              <p>Email: <strong className="text-[#1E1E1E]">{adminEmail}</strong></p>
+              <p>Password: <code className="bg-[#FAF2DA] px-1 py-0.5 rounded font-mono font-bold text-[#1E1E1E]">admin123</code></p>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 text-center">
