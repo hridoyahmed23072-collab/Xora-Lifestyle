@@ -38,7 +38,7 @@ export const translations = {
     allProducts: 'সব ব্যাগ',
     viewAll: 'সবগুলো দেখুন',
     customerReviews: 'গ্রাহকদের সন্তুষ্টির অভিজ্ঞতা',
-    reviewsSub: 'আমাদের ব্যাগের গুণগত মান ও ফিনিশিং নিয়ে সারা বাংলাদেশের ক্রেতাদের মতামত',
+    reviewsSub: 'আমাদের ব্যাগের প্রিমিয়াম কোয়ালিটি ও ডিজাইন নিয়ে সারা বাংলাদেশের ক্রেতাদের মতামত',
     verifiedBuyer: 'ভেরিফাইড ক্রেতা',
     
     // Trust Badges
@@ -206,7 +206,7 @@ export const translations = {
     allProducts: 'All Bags',
     viewAll: 'View All',
     customerReviews: 'What Bag Lovers Say',
-    reviewsSub: 'Authentic reviews from valued customers across Bangladesh',
+    reviewsSub: 'Customer reviews from across Bangladesh on the premium quality and design of our bags',
     verifiedBuyer: 'Verified Purchase',
     
     // Trust Badges

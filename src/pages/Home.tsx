@@ -260,13 +260,13 @@ export const Home: React.FC = () => {
               </span>
               <h2 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
                 {language === 'bn'
-                  ? 'মাস্টার কারিগরের হাতে গড়া খাঁটি চামড়ার ব্যাগ'
-                  : 'Handcrafted Bags Built to Last for Generations'}
+                  ? 'চীনের প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগ এখন বাংলাদেশে'
+                  : 'Premium-Quality Trendy Bags from China, Now in Bangladesh'}
               </h2>
               <p className="text-xs sm:text-sm text-[#5C5449] leading-relaxed">
                 {language === 'bn'
-                  ? 'জোড়া লাইফস্টাইল (Xora Lifestyle)-এ আমরা প্রতিটি ব্যাগ তৈরি করি শতভাগ নিখুঁত ফিনিশিং, প্রিমিয়াম খাঁটি চামড়া এবং দীর্ঘস্থায়ী ব্রাস ফিটিংস দিয়ে। আপনার অফিস, ভ্রমণ বা দৈনন্দিন ব্যবহারের জন্য নিখুঁত সঙ্গী।'
-                  : 'At Xora Lifestyle, every bag is meticulously constructed from premium full-grain leathers, reinforced stitching, and heavy-duty brass hardware designed to accompany you through every chapter of life.'}
+                  ? 'আধুনিক ডিজাইন - আকর্ষণীয় লুক'
+                  : 'Modern Design - Attractive Look'}
               </p>
               <div className="pt-2">
                 <Link
