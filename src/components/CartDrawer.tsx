@@ -62,26 +62,6 @@ export const CartDrawer: React.FC = () => {
             </button>
           </div>
 
-          {/* Free Shipping Progress Indicator */}
-          {freeShippingThreshold > 0 && (
-          <div className="bg-[#F3EDE3] px-5 py-3 border-b border-[#E8E1D5]">
-            <div className="flex justify-between items-center text-xs font-medium text-[#4A433A] mb-1.5">
-              <span>
-                {amountNeeded === 0
-                  ? t('freeDeliveryUnlocked')
-                  : `${formatPrice(amountNeeded)} ${t('freeDeliveryAway')}`}
-              </span>
-              <span className="font-semibold text-[#962D3E]">{progressPercent}%</span>
-            </div>
-            <div className="w-full bg-[#E5DDD0] h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-[#962D3E] h-full transition-all duration-300 rounded-full"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-          )}
-
           {/* Cart Items List */}
           <div className="flex-1 overflow-y-auto px-5 py-4 divide-y divide-[#EDE5D8]">
             {cart.length === 0 ? (

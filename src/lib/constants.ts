@@ -96,7 +96,7 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   outsideDhakaCharge: 150,
   bkashNumber: '01711234567',
   nagadNumber: '01711234567',
-  freeShippingMinAmount: 3000,
+  freeShippingMinAmount: 0,
 };
 
 export const DEFAULT_CATEGORIES: Category[] = [

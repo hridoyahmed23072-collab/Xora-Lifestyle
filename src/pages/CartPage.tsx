@@ -52,26 +52,6 @@ export const CartPage: React.FC = () => {
           {/* Cart Items Column (lg:col-span-8) */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-[#E7E0D3] p-5 sm:p-6 shadow-sm flex flex-col divide-y divide-[#F0EAE0]">
             
-            {/* Free Shipping Strip */}
-            {freeShippingThreshold > 0 && (
-            <div className="pb-5">
-              <div className="flex justify-between items-center text-xs font-semibold text-[#4A433A] mb-1.5">
-                <span>
-                  {amountNeeded === 0
-                    ? t('freeDeliveryUnlocked')
-                    : `${formatPrice(amountNeeded)} ${t('freeDeliveryAway')}`}
-                </span>
-                <span className="text-[#962D3E]">{progressPercent}%</span>
-              </div>
-              <div className="w-full bg-[#EFE9DF] h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-[#962D3E] h-full transition-all duration-300 rounded-full"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-            )}
-
             {/* Items */}
             {cart.map((item, idx) => (
               <div key={`${item.productId}-${item.selectedColor}-${item.selectedSize}-${idx}`} className="py-5 flex gap-4 first:pt-5">

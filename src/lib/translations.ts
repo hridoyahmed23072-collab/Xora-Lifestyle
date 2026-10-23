@@ -4,7 +4,7 @@ export const translations = {
     brandName: 'Xora Lifestyle',
     brandSub: 'জোড়া লাইফস্টাইল',
     tagline: 'প্রিমিয়াম চামড়া ও ক্যানভাস ব্যাগের বিশ্বস্ত ঠিকানা',
-    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৮০, ঢাকার বাইরে ৳১৫০ | ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি!',
+    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৮০, ঢাকার বাইরে ৳১৫০',
     
     // Navigation
     navHome: 'হোম',
@@ -172,7 +172,7 @@ export const translations = {
     brandName: 'Xora Lifestyle',
     brandSub: 'Handcrafted Heritage Bags',
     tagline: 'Handcrafted Leather & Everyday Bags for Bangladesh',
-    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳80, Outside Dhaka ৳150 | Free Shipping on Orders over ৳3,000!',
+    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳80, Outside Dhaka ৳150',
     
     // Navigation
     navHome: 'Home',

@@ -75,14 +75,8 @@ export const Checkout: React.FC = () => {
   // Pricing calculation
   const insideCharge = settings.insideDhakaCharge ?? 80;
   const outsideCharge = settings.outsideDhakaCharge ?? 150;
-  const freeShippingThreshold = settings.freeShippingMinAmount ?? 3000;
 
-  const isFreeShipping = subtotal >= freeShippingThreshold;
-  const deliveryCharge = isFreeShipping
-    ? 0
-    : deliveryZone === 'inside_dhaka'
-    ? insideCharge
-    : outsideCharge;
+  const deliveryCharge = deliveryZone === 'inside_dhaka' ? insideCharge : outsideCharge;
   const grandTotal = subtotal + deliveryCharge;
 
   // Handle District Change
@@ -364,7 +358,7 @@ export const Checkout: React.FC = () => {
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#962D3E]">
-                      {isFreeShipping ? (language === 'bn' ? 'ফ্রি' : 'Free') : formatPrice(insideCharge)}
+                      {formatPrice(insideCharge)}
                     </span>
                   </label>
 
@@ -393,7 +387,7 @@ export const Checkout: React.FC = () => {
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#962D3E]">
-                      {isFreeShipping ? (language === 'bn' ? 'ফ্রি' : 'Free') : formatPrice(outsideCharge)}
+                      {formatPrice(outsideCharge)}
                     </span>
                   </label>
                 </div>
@@ -652,18 +646,9 @@ export const Checkout: React.FC = () => {
               <div className="flex justify-between">
                 <span>{t('deliveryFee')}</span>
                 <span className="font-semibold text-[#1E1E1E] tabular-nums">
-                  {deliveryCharge === 0 ? (
-                    <span className="text-[#2E7D32]">ফ্রি (Free)</span>
-                  ) : (
-                    formatPrice(deliveryCharge)
-                  )}
+                  {formatPrice(deliveryCharge)}
                 </span>
               </div>
-              {isFreeShipping && (
-                <p className="text-[11px] text-[#2E7D32] bg-[#EAF8EE] p-2 rounded-lg font-medium">
-                  {t('freeDeliveryUnlocked')}
-                </p>
-              )}
             </div>
 
             {/* Total Payable */}
