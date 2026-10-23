@@ -286,8 +286,13 @@ export const storeService = {
     // Always store to localStorage for client-side persistence and tracking fallback
     const existingOrdersStr = localStorage.getItem(STORAGE_KEYS.ORDERS);
     const orders: Order[] = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
-    orders.unshift(newOrder);
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+    const filteredOrders = orders.filter((o) => o && o.id !== 'XOR-844380' && o.id !== orderId);
+    filteredOrders.unshift(newOrder);
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(filteredOrders));
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('xora_orders_updated', { detail: newOrder }));
+    }
 
     return newOrder;
   },
@@ -355,21 +360,50 @@ export const storeService = {
 
   // ADMIN: Get all orders
   async getOrders(): Promise<Order[]> {
+    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const localOrders: Order[] = localData ? JSON.parse(localData) : [];
+    const ordersMap = new Map<string, Order>();
+
+    // 1. Populate local orders first
+    for (const o of localOrders) {
+      if (o && o.id) ordersMap.set(o.id, o);
+    }
+
+    // 2. Fetch remote orders from Firestore and merge
     if (isFirebaseConfigured && db) {
       try {
         const querySnapshot = await getDocs(collection(db, 'orders'));
         if (!querySnapshot.empty) {
-          const orders = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
-          orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          return orders;
+          for (const docSnap of querySnapshot.docs) {
+            const remoteOrder = { id: docSnap.id, ...docSnap.data() } as Order;
+            ordersMap.set(remoteOrder.id, remoteOrder);
+          }
+        }
+
+        // 3. Sync any local orders to Firestore
+        for (const o of localOrders) {
+          if (o && o.id && o.id !== 'XOR-844380') {
+            setDoc(doc(db, 'orders', o.id), o).catch(() => {});
+          }
         }
       } catch (e) {
-        console.warn('Firestore fetch orders failed, falling back to localStorage', e);
+        console.warn('Firestore fetch orders failed, using cached/local orders', e);
       }
     }
 
-    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return localData ? JSON.parse(localData) : [SAMPLE_DEMO_ORDER];
+    const allOrders = Array.from(ordersMap.values());
+    
+    // If real customer orders exist, remove the sample demo order (XOR-844380) so only real orders are shown
+    const realOrders = allOrders.filter((o) => o.id !== 'XOR-844380');
+    const finalOrders = realOrders.length > 0 ? realOrders : (allOrders.length > 0 ? allOrders : [SAMPLE_DEMO_ORDER]);
+
+    finalOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    try {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(finalOrders));
+    } catch {}
+
+    return finalOrders;
   },
 
   // ADMIN: Update order status

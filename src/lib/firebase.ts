@@ -46,7 +46,14 @@ if (isFirebaseConfigured) {
 }
 
 export { app, db, auth, firebaseConfig };
-export const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'hridoyahmed23072@gmail.com').toLowerCase().trim();
+export const ADMIN_EMAILS = [
+  'hridoyahmed23072@gmail.com',
+  'xoralifestyle21@gmail.com',
+  'xoralifestyle21@gamil.com',
+  'mdmadara999@gmail.com',
+  (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim(),
+].filter(Boolean);
+export const ADMIN_EMAIL = ADMIN_EMAILS[0];
 export const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || '';
 export const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || '';
 

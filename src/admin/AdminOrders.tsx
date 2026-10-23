@@ -14,9 +14,12 @@ import {
   Phone,
   MapPin,
   Calendar,
+  RefreshCw,
 } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import { useLanguage } from '../context/LanguageContext';
+import { isFirebaseConfigured, db } from '../lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { Order, OrderStatus } from '../types';
 
 export const AdminOrders: React.FC = () => {
@@ -29,6 +32,30 @@ export const AdminOrders: React.FC = () => {
 
   useEffect(() => {
     loadOrders();
+
+    const handleUpdate = () => {
+      storeService.getOrders().then(setOrders);
+    };
+
+    window.addEventListener('xora_orders_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    let unsubscribe: (() => void) | undefined;
+    if (isFirebaseConfigured && db) {
+      try {
+        unsubscribe = onSnapshot(collection(db, 'orders'), () => {
+          storeService.getOrders().then(setOrders);
+        });
+      } catch (e) {
+        console.warn('onSnapshot listener error:', e);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('xora_orders_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const loadOrders = async () => {
@@ -139,13 +166,25 @@ export const AdminOrders: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleExportCSV}
-          className="px-4 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto"
-        >
-          <Download className="w-4 h-4 text-[#962D3E]" />
-          <span>Export Orders (CSV)</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={() => loadOrders()}
+            disabled={loading}
+            className="px-3.5 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+            title="Refresh orders list"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[#962D3E] ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all"
+          >
+            <Download className="w-4 h-4 text-[#962D3E]" />
+            <span>Export Orders (CSV)</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}

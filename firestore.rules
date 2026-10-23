@@ -2,10 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Only this exact account is the administrator
+    // Authorized administrators
     function isAdmin() {
-      return request.auth != null &&
-        request.auth.token.email == "hridoyahmed23072@gmail.com";
+      return request.auth != null && (
+        request.auth.token.email == "hridoyahmed23072@gmail.com" ||
+        request.auth.token.email == "xoralifestyle21@gmail.com" ||
+        request.auth.token.email == "xoralifestyle21@gamil.com" ||
+        request.auth.token.email == "mdmadara999@gmail.com"
+      );
     }
 
     match /products/{productId} {
@@ -29,13 +33,13 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      // Customers can place an order (basic size limit against abuse)
-      allow create: if request.resource.data.keys().size() < 40;
+      // Anyone can place an order (public customer checkout)
+      allow create: if true;
 
-      // A single order can be fetched only if the Order ID is known (tracking)
+      // Anyone with order ID can get single order for tracking
       allow get: if true;
 
-      // Only admin can list all orders, update or delete
+      // Only admin can list, update status or delete orders
       allow list: if isAdmin();
       allow update, delete: if isAdmin();
     }

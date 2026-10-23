@@ -5,7 +5,7 @@ import {
   onAuthStateChanged,
   type User,
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured, ADMIN_EMAIL } from '../lib/firebase';
+import { auth, isFirebaseConfigured, ADMIN_EMAIL, ADMIN_EMAILS } from '../lib/firebase';
 
 interface AuthContextType {
   user: User | { email: string; uid: string; displayName?: string } | null;
@@ -40,10 +40,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedDemo = localStorage.getItem(DEMO_AUTH_STORAGE_KEY);
         if (savedDemo) {
           const parsed = JSON.parse(savedDemo);
-          if (parsed?.email && parsed.email.toLowerCase().trim() === targetAdminEmail) {
+          if (parsed?.email && ADMIN_EMAILS.includes(parsed.email.toLowerCase().trim())) {
             setUser(parsed);
           } else {
-            // Immediately purge any old or unauthorized cached session (e.g. admin@xoralifestyle.com)
             localStorage.removeItem(DEMO_AUTH_STORAGE_KEY);
             setUser(null);
           }
@@ -56,14 +55,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [targetAdminEmail]);
 
   const isAdmin = Boolean(
-    user && user.email && user.email.toLowerCase().trim() === targetAdminEmail
+    user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim())
   );
 
   const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.toLowerCase().trim();
 
     // Verification check for admin email
-    if (cleanEmail !== targetAdminEmail) {
+    if (!ADMIN_EMAILS.includes(cleanEmail)) {
       return {
         success: false,
         error: `Access Denied. Only the authorized administrator account (${targetAdminEmail}) is permitted to log in.`,
