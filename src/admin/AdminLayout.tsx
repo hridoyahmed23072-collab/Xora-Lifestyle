@@ -74,7 +74,7 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
     { to: '/admin/products', label: 'Products', icon: Package },
-    { to: '/admin/categories', label: 'Categories', icon: Layers },
+    { to: '/admin/categories', label: 'ব্যাগ কালেকশন (Categories)', icon: Layers },
     { to: '/admin/reviews', label: 'Reviews', icon: Star },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];

@@ -27,8 +27,15 @@ export const AdminCategories: React.FC = () => {
 
   const loadCategories = async () => {
     setLoading(true);
-    const data = await storeService.getCategories();
-    setCategories(data);
+    const [cats, prods] = await Promise.all([
+      storeService.getCategories(),
+      storeService.getProducts(),
+    ]);
+    const updated = cats.map((c) => ({
+      ...c,
+      itemCount: prods.filter((p) => p.categoryId === c.id || p.categoryId === c.slug).length,
+    }));
+    setCategories(updated);
     setLoading(false);
   };
 
@@ -100,7 +107,7 @@ export const AdminCategories: React.FC = () => {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete category "${name}"?`)) {
+    if (confirm(`আপনি কি নিশ্চিতভাবে এই ব্যাগ কালেকশন "${name}" মুছে ফেলতে চান?`)) {
       await storeService.deleteCategory(id);
       await loadCategories();
     }
@@ -112,19 +119,19 @@ export const AdminCategories: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
-            Store Categories
+            ব্যাগ কালেকশন ও ক্যাটাগরি (Categories)
           </h1>
           <p className="text-xs text-[#7A7165] mt-1">
-            Organize products into curated lifestyle departments.
+            হোমপেজ ও শপে প্রদর্শিত সব ব্যাগ কালেকশন এখান থেকে যোগ, এডিট বা ডিলিট করুন।
           </p>
         </div>
 
         <button
           onClick={openAddModal}
-          className="px-4 py-2.5 bg-[#962D3E] hover:bg-[#7D2232] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto"
+          className="px-4 py-2.5 bg-[#962D3E] hover:bg-[#7D2232] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Add New Category</span>
+          <span>+ নতুন ব্যাগ কালেকশন যোগ করুন</span>
         </button>
       </div>
 

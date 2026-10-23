@@ -490,7 +490,14 @@ export const storeService = {
 
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'categories', newId), newCategory);
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (querySnapshot.empty) {
+          for (const c of categories) {
+            await setDoc(doc(db, 'categories', c.id), c);
+          }
+        } else {
+          await setDoc(doc(db, 'categories', newId), newCategory);
+        }
       } catch (e) {
         console.warn('Could not save category to Firestore:', e);
       }
@@ -507,7 +514,14 @@ export const storeService = {
 
     if (isFirebaseConfigured && db) {
       try {
-        await updateDoc(doc(db, 'categories', id), updates);
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (querySnapshot.empty) {
+          for (const c of updated) {
+            await setDoc(doc(db, 'categories', c.id), c);
+          }
+        } else {
+          await updateDoc(doc(db, 'categories', id), updates);
+        }
       } catch (e) {
         console.warn('Could not update category in Firestore:', e);
       }
@@ -524,7 +538,14 @@ export const storeService = {
 
     if (isFirebaseConfigured && db) {
       try {
-        await deleteDoc(doc(db, 'categories', id));
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (querySnapshot.empty) {
+          for (const c of filtered) {
+            await setDoc(doc(db, 'categories', c.id), c);
+          }
+        } else {
+          await deleteDoc(doc(db, 'categories', id));
+        }
       } catch (e) {
         console.warn('Could not delete category from Firestore:', e);
       }

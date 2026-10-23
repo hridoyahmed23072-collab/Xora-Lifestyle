@@ -10,7 +10,8 @@ export const CartPage: React.FC = () => {
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
 
-  const freeShippingThreshold = useSettings().freeShippingMinAmount || 0;
+  const settings = useSettings();
+  const freeShippingThreshold = settings.freeShippingMinAmount || 0;
   const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
   const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
