@@ -20,6 +20,7 @@ export const AdminSettings: React.FC = () => {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [savedToast, setSavedToast] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -86,10 +87,17 @@ export const AdminSettings: React.FC = () => {
     if (!settings) return;
 
     setSaving(true);
-    await storeService.updateSettings(settings);
-    setSaving(false);
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 3500);
+    setSaveError(null);
+    try {
+      await storeService.updateSettings(settings);
+      setSavedToast(true);
+      setTimeout(() => setSavedToast(false), 3500);
+    } catch (err: any) {
+      setSavedToast(false);
+      setSaveError(err?.message || 'Could not save settings to Firebase.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading || !settings) {
@@ -108,6 +116,12 @@ export const AdminSettings: React.FC = () => {
             Configure delivery charges, bKash/Nagad accounts, contact info, and promotional policies.
           </p>
         </div>
+
+        {saveError && (
+          <div className="px-3 py-1.5 bg-[#FDECEC] border border-[#F3B8B8] text-[#B42318] text-xs font-semibold rounded-xl max-w-sm">
+            Save failed: {saveError}
+          </div>
+        )}
 
         {savedToast && (
           <div className="px-3 py-1.5 bg-[#EAF8EE] border border-[#BDE8C6] text-[#1E7E34] text-xs font-semibold rounded-xl flex items-center gap-1.5 animate-in fade-in">

@@ -14,11 +14,13 @@ import { useLanguage } from '../context/LanguageContext';
 import { BANGLADESH_DISTRICTS } from '../lib/constants';
 import { storeService } from '../services/storeService';
 import { DeliveryZone, PaymentMethod } from '../types';
+import { useSettings } from '../hooks/useSettings';
 
 export const Checkout: React.FC = () => {
   const { cart, subtotal, clearCart } = useCart();
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
+  const settings = useSettings();
 
   // Form State
   const [customerName, setCustomerName] = useState('');
@@ -36,12 +38,13 @@ export const Checkout: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Pricing calculation
-  const isFreeShipping = subtotal >= 3000;
+  const freeThreshold = settings.freeShippingMinAmount || 0;
+  const isFreeShipping = freeThreshold > 0 && subtotal >= freeThreshold;
   const deliveryCharge = isFreeShipping
     ? 0
     : deliveryZone === 'inside_dhaka'
-    ? 70
-    : 130;
+    ? settings.insideDhakaCharge
+    : settings.outsideDhakaCharge;
   const grandTotal = subtotal + deliveryCharge;
 
   // Handle District Change
@@ -319,7 +322,7 @@ export const Checkout: React.FC = () => {
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#962D3E]">
-                      {isFreeShipping ? 'ফ্রি' : '৳৭০'}
+                      {isFreeShipping ? 'ফ্রি' : formatPrice(settings.insideDhakaCharge)}
                     </span>
                   </label>
 
@@ -344,7 +347,7 @@ export const Checkout: React.FC = () => {
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#962D3E]">
-                      {isFreeShipping ? 'ফ্রি' : '৳১৩০'}
+                      {isFreeShipping ? 'ফ্রি' : formatPrice(settings.outsideDhakaCharge)}
                     </span>
                   </label>
                 </div>
@@ -441,7 +444,7 @@ export const Checkout: React.FC = () => {
                     <div className="p-3 bg-white rounded-lg border border-[#F0BED2] flex items-center justify-between">
                       <div>
                         <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
-                        <p className="text-sm font-bold text-[#E2136E] tracking-wider">01711234567</p>
+                        <p className="text-sm font-bold text-[#E2136E] tracking-wider">{settings.bkashNumber}</p>
                       </div>
                       <span className="text-[11px] text-[#696156] font-medium bg-[#FFF0F5] px-2 py-1 rounded">
                         পার্সোনাল / সেন্ড মানি
@@ -517,7 +520,7 @@ export const Checkout: React.FC = () => {
                     <div className="p-3 bg-white rounded-lg border border-[#F8CFAC] flex items-center justify-between">
                       <div>
                         <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
-                        <p className="text-sm font-bold text-[#F7931E] tracking-wider">01711234567</p>
+                        <p className="text-sm font-bold text-[#F7931E] tracking-wider">{settings.nagadNumber}</p>
                       </div>
                       <span className="text-[11px] text-[#696156] font-medium bg-[#FFF8F0] px-2 py-1 rounded">
                         পার্সোনাল / সেন্ড মানি

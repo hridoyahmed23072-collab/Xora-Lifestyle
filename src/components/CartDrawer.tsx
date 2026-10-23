@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useSettings } from '../hooks/useSettings';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -22,8 +23,8 @@ export const CartDrawer: React.FC = () => {
 
   if (!isDrawerOpen) return null;
 
-  const freeShippingThreshold = 3000;
-  const progressPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
+  const freeShippingThreshold = useSettings().freeShippingMinAmount || 0;
+  const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
   const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
   const handleCheckout = () => {
@@ -61,6 +62,7 @@ export const CartDrawer: React.FC = () => {
           </div>
 
           {/* Free Shipping Progress Indicator */}
+          {freeShippingThreshold > 0 && (
           <div className="bg-[#F3EDE3] px-5 py-3 border-b border-[#E8E1D5]">
             <div className="flex justify-between items-center text-xs font-medium text-[#4A433A] mb-1.5">
               <span>
@@ -77,6 +79,7 @@ export const CartDrawer: React.FC = () => {
               />
             </div>
           </div>
+          )}
 
           {/* Cart Items List */}
           <div className="flex-1 overflow-y-auto px-5 py-4 divide-y divide-[#EDE5D8]">

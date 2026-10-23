@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -21,6 +22,7 @@ import { Product } from '../types';
 export const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { language, formatPrice, t } = useLanguage();
+  const settings = useSettings();
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -127,7 +129,7 @@ export const ProductDetails: React.FC = () => {
     navigate('/checkout');
   };
 
-  const whatsappInquiryUrl = `https://wa.me/8801711234567?text=${encodeURIComponent(
+  const whatsappInquiryUrl = `https://wa.me/${toWhatsAppNumber(settings.whatsapp)}?text=${encodeURIComponent(
     language === 'bn'
       ? `হ্যালো Xora Lifestyle, আমি "${product.nameBn}" (দাম: ৳${product.price}) সম্পর্কে জানতে চাচ্ছি।`
       : `Hello Xora Lifestyle, I want to inquire about "${product.nameEn}" (Price: ৳${product.price}).`

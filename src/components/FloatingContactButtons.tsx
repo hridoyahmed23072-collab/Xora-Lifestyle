@@ -1,9 +1,11 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 
 export const FloatingContactButtons: React.FC = () => {
   const { language } = useLanguage();
+  const settings = useSettings();
 
   const whatsappMessage = encodeURIComponent(
     language === 'bn'
@@ -15,7 +17,7 @@ export const FloatingContactButtons: React.FC = () => {
     <div className="fixed bottom-20 md:bottom-6 right-4 z-40 flex flex-col gap-2.5 items-end">
       {/* WhatsApp Floating Button */}
       <a
-        href={`https://wa.me/8801711234567?text=${whatsappMessage}`}
+        href={`https://wa.me/${toWhatsAppNumber(settings.whatsapp)}?text=${whatsappMessage}`}
         target="_blank"
         rel="noreferrer"
         className="group flex items-center gap-2 bg-[#25D366] text-white p-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300"

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 import { Phone, Mail, MapPin, MessageCircle, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const Contact: React.FC = () => {
   const { language, t } = useLanguage();
+  const settings = useSettings();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
@@ -55,7 +57,7 @@ export const Contact: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-bold text-[#1E1E1E]">{language === 'bn' ? 'হটলাইন নম্বর' : 'Hotline Phone'}</p>
-                  <p className="tabular-nums text-[#962D3E] font-semibold mt-0.5">+880 1711-234567</p>
+                  <p className="tabular-nums text-[#962D3E] font-semibold mt-0.5">{settings.phone}</p>
                   <p className="text-[11px] text-[#7A7165]">সকাল ১০:০০ টা থেকে রাত ১০:০০ টা (প্রতিদিন)</p>
                 </div>
               </div>
@@ -66,9 +68,9 @@ export const Contact: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-bold text-[#1E1E1E]">WhatsApp Support</p>
-                  <p className="tabular-nums font-semibold text-[#1E7E34] mt-0.5">+880 1711-234567</p>
+                  <p className="tabular-nums font-semibold text-[#1E7E34] mt-0.5">{settings.whatsapp}</p>
                   <a
-                    href="https://wa.me/8801711234567"
+                    href={`https://wa.me/${toWhatsAppNumber(settings.whatsapp)}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-[11px] text-[#1E7E34] underline font-medium block mt-0.5"
@@ -84,7 +86,7 @@ export const Contact: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-bold text-[#1E1E1E]">{language === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Official Email'}</p>
-                  <p className="text-[#696156] mt-0.5">hello@xoralifestyle.com</p>
+                  <p className="text-[#696156] mt-0.5">{settings.email}</p>
                 </div>
               </div>
 
@@ -95,9 +97,7 @@ export const Contact: React.FC = () => {
                 <div>
                   <p className="font-bold text-[#1E1E1E]">{language === 'bn' ? 'শো-রুম ও অফিস' : 'Showroom & Studio'}</p>
                   <p className="text-[#696156] mt-0.5">
-                    {language === 'bn'
-                      ? 'বাড়ি নং ১২, রোড নং ৭, ধানমন্ডি, ঢাকা ১২০৯, বাংলাদেশ'
-                      : 'House 12, Road 7, Dhanmondi, Dhaka 1209, Bangladesh'}
+                    {language === 'bn' ? settings.addressBn : settings.addressEn}
                   </p>
                 </div>
               </div>

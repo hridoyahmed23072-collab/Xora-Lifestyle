@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSettings } from '../hooks/useSettings';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -9,8 +10,8 @@ export const CartPage: React.FC = () => {
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
 
-  const freeShippingThreshold = 3000;
-  const progressPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
+  const freeShippingThreshold = useSettings().freeShippingMinAmount || 0;
+  const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
   const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
   if (cart.length === 0) {
@@ -51,6 +52,7 @@ export const CartPage: React.FC = () => {
           <div className="lg:col-span-8 bg-white rounded-2xl border border-[#E7E0D3] p-5 sm:p-6 shadow-sm flex flex-col divide-y divide-[#F0EAE0]">
             
             {/* Free Shipping Strip */}
+            {freeShippingThreshold > 0 && (
             <div className="pb-5">
               <div className="flex justify-between items-center text-xs font-semibold text-[#4A433A] mb-1.5">
                 <span>
@@ -67,6 +69,7 @@ export const CartPage: React.FC = () => {
                 />
               </div>
             </div>
+            )}
 
             {/* Items */}
             {cart.map((item, idx) => (

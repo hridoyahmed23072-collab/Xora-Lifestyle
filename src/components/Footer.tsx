@@ -1,10 +1,12 @@
 import React from 'react';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Truck, ShieldCheck, RefreshCw, Facebook } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const Footer: React.FC = () => {
   const { language, t } = useLanguage();
+  const settings = useSettings();
 
   return (
     <footer className="bg-[#1A1816] text-[#D1C9BE] pt-14 pb-24 md:pb-12 border-t border-[#2D2A26]">
@@ -70,7 +72,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://facebook.com/xoralifestyle.bd"
+                href={settings.facebookUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full bg-[#262320] hover:bg-[#962D3E] text-white flex items-center justify-center transition-colors"
@@ -79,12 +81,12 @@ export const Footer: React.FC = () => {
                 <Facebook className="w-4 h-4" />
               </a>
               <a
-                href="https://wa.me/8801711234567"
+                href={`https://wa.me/${toWhatsAppNumber(settings.whatsapp)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="px-3 py-1.5 rounded-full bg-[#262320] hover:bg-[#25D366] text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
               >
-                <span>WhatsApp: +880 1711-234567</span>
+                <span>WhatsApp: {settings.whatsapp}</span>
               </a>
             </div>
           </div>
@@ -128,18 +130,16 @@ export const Footer: React.FC = () => {
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#E7C677] shrink-0 mt-0.5" />
                 <span>
-                  {language === 'bn'
-                    ? 'বাড়ি নং ১২, রোড নং ৭, ধানমন্ডি, ঢাকা ১২০৯, বাংলাদেশ'
-                    : 'House 12, Road 7, Dhanmondi, Dhaka 1209, Bangladesh'}
+                  {language === 'bn' ? settings.addressBn : settings.addressEn}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[#E7C677] shrink-0" />
-                <span>+880 1711-234567 (সকাল ১০টা - রাত ১০টা)</span>
+                <span>{settings.phone} (সকাল ১০টা - রাত ১০টা)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#E7C677] shrink-0" />
-                <span>hello@xoralifestyle.com</span>
+                <span>{settings.email}</span>
               </div>
             </div>
           </div>

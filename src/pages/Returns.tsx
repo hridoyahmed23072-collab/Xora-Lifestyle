@@ -1,9 +1,11 @@
 import React from 'react';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 import { RotateCcw, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const Returns: React.FC = () => {
   const { language, t } = useLanguage();
+  const settings = useSettings();
 
   return (
     <div className="py-10 md:py-16 bg-[#FAF7F2] min-h-screen">
@@ -79,11 +81,11 @@ export const Returns: React.FC = () => {
             </h4>
             <p className="text-xs text-[#6B6357] mb-4">
               {language === 'bn'
-                ? 'আপনার অর্ডার আইডি এবং পণ্যের ছবিসহ আমাদের অফিসিয়াল হোয়াটসঅ্যাপ নম্বরে (+880 1711-234567) মেসেজ দিন।'
-                : 'Send your Order ID and photo evidence directly to our WhatsApp support at +880 1711-234567.'}
+                ? `আপনার অর্ডার আইডি এবং পণ্যের ছবিসহ আমাদের অফিসিয়াল হোয়াটসঅ্যাপ নম্বরে (${settings.whatsapp}) মেসেজ দিন।`
+                : `Send your Order ID and photo evidence directly to our WhatsApp support at ${settings.whatsapp}.`}
             </p>
             <a
-              href="https://wa.me/8801711234567"
+              href={`https://wa.me/${toWhatsAppNumber(settings.whatsapp)}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366] text-white text-xs font-bold rounded-xl"

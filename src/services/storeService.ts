@@ -116,6 +116,11 @@ if (typeof window !== 'undefined') {
   initLocalStorageData();
 }
 
+// Firestore rejects `undefined` anywhere (even nested), so drop them before writing.
+function stripUndefined<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
+}
+
 export const storeService = {
   // Check demo mode status
   isDemoMode(): boolean {
@@ -186,10 +191,12 @@ export const storeService = {
       try {
         const snap = await getDoc(doc(db, 'settings', 'general'));
         if (snap.exists()) {
-          return snap.data() as StoreSettings;
+          return { ...DEFAULT_SETTINGS, ...(snap.data() as StoreSettings) };
         }
+        return DEFAULT_SETTINGS;
       } catch (e) {
-        console.warn('Firestore fetch settings failed, using local storage', e);
+        console.warn('Firestore fetch settings failed, using defaults', e);
+        return DEFAULT_SETTINGS;
       }
     }
 
@@ -237,10 +244,12 @@ export const storeService = {
     // Save directly to Firestore 'orders' collection if configured
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'orders', orderId), newOrder);
+        await setDoc(doc(db, 'orders', orderId), stripUndefined(newOrder));
         console.log('Order successfully saved to Firestore orders collection:', orderId);
       } catch (e) {
-        console.warn('Could not save order to Firestore, saved to local storage:', e);
+        // Do NOT pretend the order succeeded: the shop owner would never see it.
+        console.error('Could not save order to Firestore:', e);
+        throw e;
       }
     }
 
@@ -319,13 +328,12 @@ export const storeService = {
     if (isFirebaseConfigured && db) {
       try {
         const querySnapshot = await getDocs(collection(db, 'orders'));
-        if (!querySnapshot.empty) {
-          const orders = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
-          orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          return orders;
-        }
+        const orders = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return orders;
       } catch (e) {
-        console.warn('Firestore fetch orders failed, falling back to localStorage', e);
+        console.error('Firestore fetch orders failed:', e);
+        return [];
       }
     }
 
@@ -557,11 +565,8 @@ export const storeService = {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 
     if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'settings', 'general'), settings);
-      } catch (e) {
-        console.warn('Could not update settings in Firestore:', e);
-      }
+      // Throws on failure so the admin sees the real error instead of a fake "saved".
+      await setDoc(doc(db, 'settings', 'general'), stripUndefined(settings));
     }
 
     return true;

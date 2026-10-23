@@ -4,12 +4,14 @@ import { CheckCircle2, MessageCircle, Truck, ArrowRight, Copy, Check } from 'luc
 import { useLanguage } from '../context/LanguageContext';
 import { storeService } from '../services/storeService';
 import { Order } from '../types';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 
 export const OrderSuccess: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { language, formatPrice, t } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
   const [copied, setCopied] = useState(false);
+  const settings = useSettings();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -76,7 +78,7 @@ export const OrderSuccess: React.FC = () => {
           {/* WhatsApp Direct Action Button */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href={`https://wa.me/8801711234567?text=${whatsappMessage}`}
+              href={`https://wa.me/${toWhatsAppNumber(settings.whatsapp)}?text=${whatsappMessage}`}
               target="_blank"
               rel="noreferrer"
               className="w-full sm:w-auto px-6 py-3 bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
