@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -65,6 +66,7 @@ function AppContent() {
 
   if (isAdminRoute) {
     return (
+      <ErrorBoundary>
       <Routes>
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
@@ -76,6 +78,7 @@ function AppContent() {
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
+      </ErrorBoundary>
     );
   }
 

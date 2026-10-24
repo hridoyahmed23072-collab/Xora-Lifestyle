@@ -35,9 +35,9 @@ export const AdminDashboard: React.FC = () => {
     });
   }, []);
 
-  const totalRevenue = orders.reduce((sum, o) => (o.status !== 'cancelled' ? sum + o.totalAmount : sum), 0);
+  const totalRevenue = orders.reduce((sum, o) => (o.status !== 'cancelled' ? sum + (Number(o.totalAmount) || 0) : sum), 0);
   const pendingOrders = orders.filter((o) => o.status === 'pending');
-  const lowStockProducts = products.filter((p) => p.stockCount <= 10);
+  const lowStockProducts = products.filter((p) => (p.stockCount ?? 0) <= 10);
   const recentOrders = orders.slice(0, 5);
 
   const getStatusBadge = (status: string) => {
@@ -252,7 +252,7 @@ export const AdminDashboard: React.FC = () => {
                 <div key={p.id} className="py-3 flex items-center justify-between first:pt-0">
                   <div className="flex items-center gap-2.5 min-w-0 pr-2">
                     <img
-                      src={p.images[0]}
+                      src={p.images?.[0]}
                       alt={p.nameEn}
                       className="w-10 h-10 object-cover rounded-lg bg-[#FAF7F2] shrink-0 border border-[#E5DDD0]"
                     />

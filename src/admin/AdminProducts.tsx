@@ -335,7 +335,7 @@ export const AdminProducts: React.FC = () => {
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-3">
                       <img
-                        src={p.images[0]}
+                        src={p.images?.[0]}
                         alt={p.nameEn}
                         className="w-12 h-12 object-cover rounded-lg bg-[#FAF7F2] border border-[#E5DDD0] shrink-0"
                       />
