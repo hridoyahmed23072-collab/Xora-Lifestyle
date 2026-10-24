@@ -11,11 +11,8 @@ export const WelcomePopup: React.FC = () => {
   useEffect(() => {
     const hasSeenWelcome = sessionStorage.getItem('xora_welcomed');
     if (!hasSeenWelcome) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        requestAnimationFrame(() => setIsAnimating(true));
-      }, 800);
-      return () => clearTimeout(timer);
+      setIsOpen(true);
+      requestAnimationFrame(() => setIsAnimating(true));
     }
   }, []);
 
