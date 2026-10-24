@@ -9,7 +9,7 @@ import { BANGLADESH_DISTRICTS } from '../lib/constants';
 
 export const Checkout: React.FC = () => {
   const { cart, totalAmount, clearCart } = useCart();
-  const { formatPrice, t } = useLanguage();
+  const { formatPrice } = useLanguage();
   const settings = useSettings();
   const navigate = useNavigate();
 
@@ -40,7 +40,6 @@ export const Checkout: React.FC = () => {
     );
   }
 
-  // Delivery charge calculation based on settings & district
   const shippingFee =
     formData.district === 'Dhaka'
       ? settings.shippingFeeInsideDhaka ?? 70
@@ -83,14 +82,13 @@ export const Checkout: React.FC = () => {
 
       if (createdOrder) {
         clearCart();
-        // ** অর্ডারের অবজেক্ট সহ Order Success পেজে নিয়ে যাওয়া হচ্ছে **
         navigate('/order-success', { state: { order: createdOrder } });
       } else {
         setError('অর্ডারটি সেভ করা যায়নি। আবার চেষ্টা করুন।');
       }
     } catch (err) {
       console.error('Checkout Error:', err);
-      setError('অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট কানেকশন বা তথ্যগুলো যাচাই করে আবার চেষ্টা করুন।');
+      setError('অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
@@ -106,7 +104,6 @@ export const Checkout: React.FC = () => {
         <h1 className="text-2xl font-serif font-bold text-rose-950 mb-8">চেকআউট - অর্ডার ফর্ম</h1>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Billing / Delivery Form */}
           <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-rose-100 space-y-5">
             <h2 className="text-lg font-bold text-slate-800 border-b border-rose-100 pb-3">ডেলিভারি তথ্য</h2>
 
@@ -179,7 +176,6 @@ export const Checkout: React.FC = () => {
               />
             </div>
 
-            {/* Payment Method */}
             <div className="pt-4 border-t border-rose-100">
               <label className="block text-xs font-bold text-slate-700 mb-3">পেমেন্ট পদ্ধতি পছন্দ করুন</label>
               <div className="grid grid-cols-3 gap-3">
@@ -227,7 +223,6 @@ export const Checkout: React.FC = () => {
             )}
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-rose-100 space-y-4">
               <h2 className="text-lg font-bold text-slate-800 border-b border-rose-100 pb-3">অর্ডার সামারি</h2>
@@ -278,7 +273,7 @@ export const Checkout: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-emerald-600" /> ১০০% নিরাপদ কেনাকাটা
               </p>
               <p className="flex items-center gap-2 font-semibold">
-                <Truck className="w-4 h-4 text-amber-600" /> হোম ডেলিভারিতে পণ্য দেখে টাকা পরিশোধের সুযোগ
+                <Truck className="w-4 h-4 text-amber-600" /> ক্যাশ অন ডেলিভারি সুবিধা
               </p>
             </div>
           </div>
