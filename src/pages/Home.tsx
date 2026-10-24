@@ -34,22 +34,20 @@ export const Home: React.FC = () => {
     return true;
   });
 
+  // Cloudinary Direct Image URL
+  const heroBgImage = "https://res.cloudinary.com/utod2jrs/image/upload/v1792817579/images.jpg";
+
   return (
     <div className="flex flex-col min-h-screen">
       
-      {/* 1. Hero Campaign Section - Full Width Background with Local Image Fallback */}
+      {/* 1. Hero Campaign Section - Full Width Background with Dark Overlay */}
       <section className="relative min-h-[580px] md:min-h-[640px] flex items-center bg-gray-900 text-white overflow-hidden border-b border-[#E8E1D5]">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="/src/assets/images/hero_luxury_bag_model_1792783113964.jpg" 
+            src={heroBgImage} 
             alt="Hero Background" 
             className="w-full h-full object-cover object-top"
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
-              target.onerror = null;
-              target.src = '/images/hero_luxury_bag_model_1792783113964.jpg';
-            }}
           />
           {/* Dark Overlay for Text Readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40 md:to-transparent" />
