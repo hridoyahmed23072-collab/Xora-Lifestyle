@@ -8,7 +8,6 @@ import { useLanguage } from '../context/LanguageContext';
 export const CartDrawer: React.FC = () => {
   const { cart, isDrawerOpen, closeDrawer, updateQuantity, removeFromCart, subtotal, totalItems } = useCart();
   const { language, formatPrice, t } = useLanguage();
-  const settings = useSettings();
   const navigate = useNavigate();
 
   // Close on ESC
@@ -23,6 +22,10 @@ export const CartDrawer: React.FC = () => {
   }, [isDrawerOpen, closeDrawer]);
 
   if (!isDrawerOpen) return null;
+
+  const freeShippingThreshold = useSettings().freeShippingMinAmount || 0;
+  const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
+  const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
   const handleCheckout = () => {
     closeDrawer();
@@ -58,6 +61,26 @@ export const CartDrawer: React.FC = () => {
             </button>
           </div>
 
+          {/* Free Shipping Progress Indicator */}
+          {freeShippingThreshold > 0 && (
+          <div className="bg-[#F3EDE3] px-5 py-3 border-b border-[#E8E1D5]">
+            <div className="flex justify-between items-center text-xs font-medium text-[#4A433A] mb-1.5">
+              <span>
+                {amountNeeded === 0
+                  ? t('freeDeliveryUnlocked')
+                  : `${formatPrice(amountNeeded)} ${t('freeDeliveryAway')}`}
+              </span>
+              <span className="font-semibold text-[#962D3E]">{progressPercent}%</span>
+            </div>
+            <div className="w-full bg-[#E5DDD0] h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-[#962D3E] h-full transition-all duration-300 rounded-full"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+          )}
+
           {/* Cart Items List */}
           <div className="flex-1 overflow-y-auto px-5 py-4 divide-y divide-[#EDE5D8]">
             {cart.length === 0 ? (
@@ -68,8 +91,8 @@ export const CartDrawer: React.FC = () => {
                 <p className="text-base font-semibold text-[#1E1E1E] mb-2">{t('cartEmpty')}</p>
                 <p className="text-xs text-[#7A7165] max-w-xs mb-6">
                   {language === 'bn'
-                    ? 'আমাদের নান্দনিক খাদি ও লেদার কালেকশন থেকে আপনার পছন্দের পণ্যটি বেছে নিন।'
-                    : 'Explore our artisan handloom and genuine leather collections to find timeless essentials.'}
+                    ? 'আমাদের কালেকশন থেকে আপনার পছন্দের ব্যাগ বেছে নিন।'
+                    : 'Explore our bag collection and pick your favourite.'}
                 </p>
                 <button
                   onClick={() => {

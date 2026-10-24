@@ -12,18 +12,14 @@ import {
   Menu,
   X,
   ShieldAlert,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useTheme } from '../context/ThemeContext';
 import { isFirebaseConfigured, db } from '../lib/firebase';
 
 export const AdminLayout: React.FC = () => {
   const { user, isAdmin, loading, logout, adminEmail } = useAuth();
   const { language } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -78,7 +74,7 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
     { to: '/admin/products', label: 'Products', icon: Package },
-    { to: '/admin/categories', label: 'ব্যাগ কালেকশন (Categories)', icon: Layers },
+    { to: '/admin/categories', label: 'Collections', icon: Layers },
     { to: '/admin/reviews', label: 'Reviews', icon: Star },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];
@@ -167,27 +163,6 @@ export const AdminLayout: React.FC = () => {
 
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-[#2C2925] flex flex-col gap-3">
-          
-          {/* Global Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="w-full p-2.5 px-3.5 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold bg-[#151c18] border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition cursor-pointer"
-            title="ওয়েবসাইটের থিম পরিবর্তন করুন"
-          >
-            {theme === 'dark' ? (
-              <>
-                <Sun className="w-4 h-4 text-amber-400" />
-                <span>Light Theme</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-4 h-4 text-slate-300" />
-                <span>Dark Theme</span>
-              </>
-            )}
-          </button>
-
           <Link
             to="/"
             target="_blank"
@@ -218,6 +193,7 @@ export const AdminLayout: React.FC = () => {
 
       {/* Main Admin Content Canvas */}
       <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+        {/* Live Firebase Connected vs Demo Mode Connection Status Banner */}
         {isFirebaseConfigured && db ? (
           <div className="mb-6 p-3.5 bg-[#EAF8EE] border border-[#BDE8C6] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3">

@@ -18,6 +18,8 @@ export const Header: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isNewArrivalsPage =
+    location.pathname === '/shop' && new URLSearchParams(location.search).get('filter') === 'new';
 
   useEffect(() => {
     storeService.getProducts().then(setAllProducts);
@@ -81,7 +83,7 @@ export const Header: React.FC = () => {
                 Xora Lifestyle
               </span>
               <span className="text-[10px] text-[#7A7268] tracking-widest uppercase mt-0.5 font-medium">
-                {language === 'bn' ? 'জোড়া লাইফস্টাইল' : 'Handcrafted Heritage'}
+                {language === 'bn' ? 'জোড়া লাইফস্টাইল' : 'Trendy Premium Bags'}
               </span>
             </Link>
           </div>
@@ -99,22 +101,26 @@ export const Header: React.FC = () => {
             <Link
               to="/shop"
               className={`hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 ${
-                location.pathname === '/shop' ? 'border-[#962D3E] text-[#962D3E] font-semibold' : 'border-transparent'
+                location.pathname === '/shop' && !isNewArrivalsPage ? 'border-[#962D3E] text-[#962D3E] font-semibold' : 'border-transparent'
               }`}
             >
               {t('navShop')}
             </Link>
             <Link
-              to="/shop?category=handbags"
-              className="hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 border-transparent"
+              to="/collections"
+              className={`hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 ${
+                location.pathname.startsWith('/collections') ? 'border-[#962D3E] text-[#962D3E] font-semibold' : 'border-transparent'
+              }`}
             >
-              {language === 'bn' ? 'হ্যান্ডব্যাগ' : 'Handbags'}
+              {t('navCollection')}
             </Link>
             <Link
-              to="/shop?category=backpacks"
-              className="hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 border-transparent"
+              to="/shop?filter=new"
+              className={`hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 ${
+                isNewArrivalsPage ? 'border-[#962D3E] text-[#962D3E] font-semibold' : 'border-transparent'
+              }`}
             >
-              {language === 'bn' ? 'ব্যাকপ্যাক' : 'Backpacks'}
+              {t('navNewArrivals')}
             </Link>
             <Link
               to="/track-order"
@@ -249,10 +255,10 @@ export const Header: React.FC = () => {
               {t('navShop')}
             </Link>
             <Link
-              to="/shop?category=handbags"
+              to="/collections"
               className="py-1 hover:text-[#962D3E] transition-colors border-b border-[#F0EAE0]"
             >
-              {language === 'bn' ? 'হ্যান্ডব্যাগ' : 'Handbags'}
+              {t('navCollection')}
             </Link>
             <Link
               to="/shop?category=tote-bags"
@@ -261,10 +267,10 @@ export const Header: React.FC = () => {
               {language === 'bn' ? 'টোট ব্যাগ' : 'Tote Bags'}
             </Link>
             <Link
-              to="/shop?category=backpacks"
+              to="/shop?filter=new"
               className="py-1 hover:text-[#962D3E] transition-colors border-b border-[#F0EAE0]"
             >
-              {language === 'bn' ? 'ব্যাকপ্যাক' : 'Backpacks'}
+              {t('navNewArrivals')}
             </Link>
             <Link
               to="/shop?category=shoulder-bags"

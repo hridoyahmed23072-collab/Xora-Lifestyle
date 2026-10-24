@@ -1,221 +1,164 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useParams, Link, useNavigate } from 'react-router-dom';
-import { CheckCircle, Package, Home, Printer, MessageCircle, AlertCircle, Search, ArrowRight, Loader2 } from 'lucide-react';
-import { Order } from '../types';
-import { Invoice } from '../components/Invoice';
-import { useSettings } from '../hooks/useSettings';
+import { useParams, Link } from 'react-router-dom';
+import { CheckCircle2, MessageCircle, Truck, ArrowRight, Copy, Check } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { storeService } from '../services/storeService';
+import { Order } from '../types';
+import { useSettings, toWhatsAppNumber } from '../hooks/useSettings';
 
 export const OrderSuccess: React.FC = () => {
-  const location = useLocation();
-  const { id } = useParams<{ id?: string }>();
-  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { language, formatPrice, t } = useLanguage();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [copied, setCopied] = useState(false);
   const settings = useSettings();
 
-  const stateOrder = location.state?.order as Order | undefined;
-  const [order, setOrder] = useState<Order | null>(stateOrder || null);
-  const [loading, setLoading] = useState<boolean>(!stateOrder && Boolean(id));
-  const [searchId, setSearchId] = useState<string>('');
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
   useEffect(() => {
-    // If order already supplied via router state, make sure state is set
-    if (stateOrder) {
-      setOrder(stateOrder);
-      setLoading(false);
-      return;
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!id) return;
 
-    // If order ID is in URL params (/order-success/:id), fetch it from storeService
-    if (id) {
-      setLoading(true);
-      setFetchError(null);
-      storeService
-        .getOrderById(id)
-        .then((foundOrder) => {
-          if (foundOrder) {
-            setOrder(foundOrder);
-          } else {
-            setFetchError(`অর্ডার নং "${id}" খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক আইডি দিয়ে চেষ্টা করুন।`);
-          }
-        })
-        .catch((err) => {
-          console.error('Error fetching order:', err);
-          setFetchError('অর্ডার লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      // If visited /order-success without params or state, check latest order from localStorage as friendly fallback
-      try {
-        const local = localStorage.getItem('xora_orders');
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.id && parsed[0].id !== 'XOR-1001') {
-            setOrder(parsed[0]);
-          }
-        }
-      } catch {}
-      setLoading(false);
-    }
-  }, [id, stateOrder]);
-
-  const handleManualSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchId.trim()) return;
-    setLoading(true);
-    setFetchError(null);
-    try {
-      const res = await storeService.getOrderById(searchId.trim());
-      if (res) {
-        setOrder(res);
-        navigate(`/order-success/${res.id}`, { replace: true });
-      } else {
-        setFetchError(`"${searchId.trim()}" আইডি দিয়ে কোনো অর্ডার পাওয়া যায়নি।`);
+    // Check localStorage orders
+    const savedOrdersStr = localStorage.getItem('xora_orders');
+    if (savedOrdersStr) {
+      const orders: Order[] = JSON.parse(savedOrdersStr);
+      const matched = orders.find((o) => o.id === id);
+      if (matched) {
+        setOrder(matched);
       }
-    } catch {
-      setFetchError('অর্ডার খুঁজতে সমস্যা হয়েছে।');
-    } finally {
-      setLoading(false);
+    }
+  }, [id]);
+
+  const copyOrderId = () => {
+    if (id) {
+      navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const whatsappNumber = settings.whatsapp || '8801711234567';
-  const whatsappUrl = order
-    ? `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-        `হ্যালো, আমি আমার অর্ডার সম্পর্কে জানতে চাই। অর্ডার আইডি: ${order.id}`
-      )}`
-    : `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}`;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FAF7F2] py-20 px-4 flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-rose-900 animate-spin mb-4" />
-        <h2 className="text-base font-bold text-slate-800">অর্ডার লোড হচ্ছে...</h2>
-        <p className="text-xs text-slate-500 mt-1">অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন।</p>
-      </div>
-    );
-  }
+  const whatsappMessage = order
+    ? encodeURIComponent(
+        language === 'bn'
+          ? `হ্যালো Xora Lifestyle, আমার অর্ডার আইডি: ${order.id}, মোট মূল্য: ৳${order.totalAmount}। গ্রাহক: ${order.customerName}, ফোন: ${order.phone}। অনুগ্রহ করে অর্ডারটি কনফার্ম করুন।`
+          : `Hello Xora Lifestyle, my Order ID is ${order.id}, Total: ৳${order.totalAmount}. Name: ${order.customerName}, Phone: ${order.phone}. Please confirm my order.`
+      )
+    : encodeURIComponent(`Hello Xora Lifestyle, I just placed order ${id}.`);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="py-12 md:py-16 bg-[#FAF7F2] min-h-screen">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
         
-        {/* Success Banner */}
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-[#E7E0D3] text-center print:hidden">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-emerald-50">
-            <CheckCircle className="w-9 h-9" />
+        {/* Success Header Card */}
+        <div className="bg-white rounded-2xl border border-[#E7E0D3] p-6 sm:p-10 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-[#EAF8EE] text-[#2E7D32] flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-10 h-10" />
           </div>
-          
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-rose-950 mb-2">
-            ধন্যবাদ, আপনার অর্ডার সম্পন্ন হয়েছে!
+
+          <h1 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E] mb-2">
+            {t('orderSuccessTitle')}
           </h1>
-          
-          <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
-            আমরা আপনার অর্ডারটি সফলভাবে গ্রহণ করেছি। খুব শীঘ্রই আমাদের কাস্টমার কেয়ার প্রতিনিধি ফোন করে অর্ডারটি ভেরিফাই করবেন।
+
+          <p className="text-xs sm:text-sm text-[#696156] max-w-md mx-auto leading-relaxed mb-6">
+            {t('orderSuccessSub')}
           </p>
 
-          {order && (
-            <div className="mt-4 inline-flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-xl border border-[#E7E0D3]">
-              <span className="text-xs text-slate-500">অর্ডার নম্বর:</span>
-              <span className="font-mono font-bold text-rose-950 text-sm">{order.id}</span>
-              <span className="text-slate-300">|</span>
-              <span className="text-xs text-slate-500">
-                তারিখ: {new Date(order.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </span>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6 pt-5 border-t border-[#F0EAE0]">
-            {order && (
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-950 text-amber-300 font-bold text-xs sm:text-sm rounded-xl hover:bg-rose-900 transition-all shadow-sm cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                ইনভয়েস প্রিন্ট করুন / PDF ডাউনলোড
-              </button>
-            )}
-
-            <Link
-              to="/track-order"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-100 text-rose-950 font-bold text-xs sm:text-sm rounded-xl hover:bg-rose-200 transition-colors"
+          {/* Order ID Banner */}
+          <div className="inline-flex items-center gap-3 bg-[#FAF7F2] border border-[#DDD4C5] rounded-xl px-4 py-2.5 mb-8">
+            <span className="text-xs text-[#7A7165] font-medium">{t('orderIdLabel')}:</span>
+            <span className="text-base font-bold text-[#962D3E] font-mono tracking-wide">{id}</span>
+            <button
+              onClick={copyOrderId}
+              className="p-1 text-[#7A7165] hover:text-[#1E1E1E] transition-colors"
+              title="Copy Order ID"
             >
-              <Package className="w-4 h-4" />
-              অর্ডার ট্র্যাক করুন
-            </Link>
+              {copied ? <Check className="w-4 h-4 text-[#2E7D32]" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
 
+          {/* WhatsApp Direct Action Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href={whatsappUrl}
+              href={`https://wa.me/${toWhatsAppNumber(settings.whatsapp)}?text=${whatsappMessage}`}
               target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
+              rel="noreferrer"
+              className="w-full sm:w-auto px-6 py-3 bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
             >
               <MessageCircle className="w-4 h-4" />
-              হোয়াটসঅ্যাপ সহায়তা
+              <span>{t('confirmViaWhatsApp')}</span>
             </a>
 
             <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-300 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-50 transition-colors"
+              to={`/track-order?id=${id}&phone=${order?.phone || ''}`}
+              className="w-full sm:w-auto px-6 py-3 bg-[#FAF7F2] hover:bg-[#EFE9DF] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
             >
-              <Home className="w-4 h-4" />
-              হোমে ফিরে যান
+              <Truck className="w-4 h-4 text-[#962D3E]" />
+              <span>{t('trackMyOrder')}</span>
             </Link>
           </div>
         </div>
 
-        {/* Fallback Search if order wasn't found */}
-        {!order && (
-          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-[#E7E0D3] text-center">
-            <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-            <h2 className="text-lg font-bold text-slate-800 mb-1">অর্ডারের তথ্য খুঁজুন</h2>
-            <p className="text-xs text-slate-600 mb-6">
-              আপনার কাছে থাকা অর্ডার আইডি প্রদান করে ইনভয়েস দেখুন।
-            </p>
+        {/* Order Details Breakdown Card */}
+        {order && (
+          <div className="mt-8 bg-white rounded-2xl border border-[#E7E0D3] p-6 shadow-sm flex flex-col gap-5">
+            <h2 className="font-semibold text-base text-[#1E1E1E] border-b border-[#F0EAE0] pb-3">
+              {language === 'bn' ? 'অর্ডার সংক্রান্ত তথ্য' : 'Order Information'}
+            </h2>
 
-            <form onSubmit={handleManualSearch} className="max-w-md mx-auto flex gap-2">
-              <input
-                type="text"
-                placeholder="যেমন: XOR-123456"
-                value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
-                className="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-900 bg-white text-slate-900"
-              />
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-rose-950 text-white text-xs font-bold rounded-xl hover:bg-rose-900 transition-colors inline-flex items-center gap-1.5"
-              >
-                <Search className="w-4 h-4" />
-                <span>খুঁজুন</span>
-              </button>
-            </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-[#544C41]">
+              <div>
+                <p className="text-[#887F74] mb-0.5">{language === 'bn' ? 'গ্রাহকের নাম' : 'Customer Name'}</p>
+                <p className="font-bold text-[#1E1E1E]">{order.customerName}</p>
+              </div>
+              <div>
+                <p className="text-[#887F74] mb-0.5">{language === 'bn' ? 'মোবাইল নম্বর' : 'Phone'}</p>
+                <p className="font-bold text-[#1E1E1E] tabular-nums">{order.phone}</p>
+              </div>
+              <div>
+                <p className="text-[#887F74] mb-0.5">{language === 'bn' ? 'ডেলিভারি ঠিকানা' : 'Address'}</p>
+                <p className="font-semibold text-[#1E1E1E]">{order.address}, {order.district}</p>
+              </div>
+              <div>
+                <p className="text-[#887F74] mb-0.5">{language === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}</p>
+                <p className="font-bold text-[#962D3E] uppercase">{order.paymentMethod}</p>
+              </div>
+            </div>
 
-            {fetchError && (
-              <p className="text-xs text-rose-600 mt-3 font-semibold">{fetchError}</p>
-            )}
+            {/* Itemized summary */}
+            <div className="pt-3 border-t border-[#F0EAE0] flex flex-col gap-2.5">
+              <p className="text-xs font-bold text-[#1E1E1E]">
+                {language === 'bn' ? 'অর্ডারকৃত পণ্যসমূহ:' : 'Ordered Items:'}
+              </p>
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center text-xs py-1">
+                  <span className="text-[#4A433A] truncate max-w-xs">
+                    {language === 'bn' ? item.nameBn : item.nameEn} (x{item.quantity})
+                  </span>
+                  <span className="font-semibold text-[#1E1E1E] tabular-nums">
+                    {formatPrice(item.totalPrice)}
+                  </span>
+                </div>
+              ))}
+            </div>
 
-            <div className="mt-6 pt-4 border-t border-slate-100">
-              <Link to="/track-order" className="text-xs text-rose-900 font-bold inline-flex items-center gap-1 hover:underline">
-                ট্র্যাকিং পেজে যান <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+            {/* Total */}
+            <div className="pt-3 border-t border-[#F0EAE0] flex justify-between items-baseline text-xs sm:text-sm">
+              <span className="font-bold text-[#1E1E1E]">{t('total')}</span>
+              <span className="text-lg font-bold text-[#962D3E] tabular-nums">
+                {formatPrice(order.totalAmount)}
+              </span>
             </div>
           </div>
         )}
 
-        {/* Invoice Printable View */}
-        {order && (
-          <div className="shadow-sm rounded-2xl overflow-hidden">
-            <Invoice order={order} />
-          </div>
-        )}
+        <div className="text-center mt-8">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#962D3E] hover:underline"
+          >
+            <span>{t('backToHome')}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
 
       </div>
     </div>

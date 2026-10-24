@@ -17,8 +17,7 @@ import { ProductCard } from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { storeService } from '../services/storeService';
-import { DEFAULT_SETTINGS } from '../lib/constants';
-import { Product, StoreSettings } from '../types';
+import { Product } from '../types';
 
 export const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -345,7 +344,7 @@ export const ProductDetails: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#962D3E] shrink-0" />
-                <span>{language === 'bn' ? '১০০% অকৃত্রিম হ্যান্ডক্রাফটেড পণ্য নিশ্চয়তা' : 'Guaranteed 100% genuine artisan craft'}</span>
+                <span>{language === 'bn' ? 'প্রিমিয়াম কোয়ালিটি ও আধুনিক ডিজাইন' : 'Premium quality & modern design'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <RotateCcw className="w-4 h-4 text-[#962D3E] shrink-0" />
@@ -421,18 +420,9 @@ export const ProductDetails: React.FC = () => {
               <div className="text-xs sm:text-sm text-[#4A433A] leading-relaxed max-w-2xl space-y-3">
                 <p>{t('shippingReturnContent')}</p>
                 <ul className="list-disc pl-5 space-y-1.5 text-xs">
-                  <li>
-                    <strong>{language === 'bn' ? 'ঢাকার ভেতরে ডেলিভারি:' : 'Inside Dhaka Delivery:'}</strong>{' '}
-                    {formatPrice(settings.insideDhakaCharge)} ({language === 'bn' ? '২-৩ কার্যদিবস' : '2-3 business days'})
-                  </li>
-                  <li>
-                    <strong>{language === 'bn' ? 'ঢাকার বাইরে সমগ্র বাংলাদেশে:' : 'Outside Dhaka:'}</strong>{' '}
-                    {formatPrice(settings.outsideDhakaCharge)} ({language === 'bn' ? '৩-৫ কার্যদিবস' : '3-5 business days'})
-                  </li>
-                  <li>
-                    <strong>{language === 'bn' ? 'ক্যাশ অন ডেলিভারি:' : 'Cash on Delivery:'}</strong>{' '}
-                    {language === 'bn' ? 'পণ্য বুঝে পেয়ে মূল্য পরিশোধ করুন' : 'Pay when you receive the product'}
-                  </li>
+                  <li><strong>ঢাকার ভেতরে ডেলিভারি:</strong> ৳৭০ (২-৩ কার্যদিবস)</li>
+                  <li><strong>ঢাকার বাইরে সমগ্র বাংলাদেশে:</strong> ৳১৩০ (৩-৫ কার্যদিবস)</li>
+                  <li><strong>ক্যাশ অন ডেলিভারি:</strong> পণ্য বুঝে পেয়ে মূল্য পরিশোধ করুন</li>
                 </ul>
               </div>
             )}

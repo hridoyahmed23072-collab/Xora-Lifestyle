@@ -142,7 +142,7 @@ export const AdminDashboard: React.FC = () => {
               {products.length} Items
             </p>
             <span className="text-[11px] text-[#595247] mt-1 inline-block">
-              Across 4 artisan categories
+              Across all collections
             </span>
           </div>
           <div className="p-3 bg-[#FAF7F2] text-[#595247] border border-[#E5DDD0] rounded-xl">

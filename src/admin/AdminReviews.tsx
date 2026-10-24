@@ -39,7 +39,7 @@ export const AdminReviews: React.FC = () => {
     setCustomerNameEn('');
     setDistrictBn('ধানমন্ডি, ঢাকা');
     setDistrictEn('Dhanmondi, Dhaka');
-    setProductNameBn('নকশী কারুকার্য খাদি টিউনিপ কুর্তা');
+    setProductNameBn('প্রিমিয়াম হ্যান্ডব্যাগ');
     setProductNameEn('Hand-Embroidered Khadi Tunic Kurta');
     setRating(5);
     setCommentBn('');

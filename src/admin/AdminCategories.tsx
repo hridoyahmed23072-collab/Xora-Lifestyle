@@ -27,15 +27,8 @@ export const AdminCategories: React.FC = () => {
 
   const loadCategories = async () => {
     setLoading(true);
-    const [cats, prods] = await Promise.all([
-      storeService.getCategories(),
-      storeService.getProducts(),
-    ]);
-    const updated = cats.map((c) => ({
-      ...c,
-      itemCount: prods.filter((p) => p.categoryId === c.id || p.categoryId === c.slug).length,
-    }));
-    setCategories(updated);
+    const data = await storeService.getCategories();
+    setCategories(data);
     setLoading(false);
   };
 
@@ -46,7 +39,7 @@ export const AdminCategories: React.FC = () => {
     setSlug('');
     setDescriptionBn('');
     setDescriptionEn('');
-    setImage('/images/product_leather_bag_1792674216295.jpg');
+    setImage('/src/assets/images/product_leather_bag_1792674216295.jpg');
     setIsModalOpen(true);
   };
 
@@ -80,7 +73,7 @@ export const AdminCategories: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameBn.trim() || !nameEn.trim()) {
-      alert('Please fill both Bangla and English category names');
+      alert('Please fill both Bangla and English collection names');
       return;
     }
 
@@ -91,7 +84,7 @@ export const AdminCategories: React.FC = () => {
       slug: slug.trim() || nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       descriptionBn,
       descriptionEn,
-      image: image || '/images/product_leather_bag_1792674216295.jpg',
+      image: image || '/src/assets/images/product_leather_bag_1792674216295.jpg',
       itemCount: editingCategory?.itemCount || 0,
     };
 
@@ -107,7 +100,7 @@ export const AdminCategories: React.FC = () => {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (confirm(`আপনি কি নিশ্চিতভাবে এই ব্যাগ কালেকশন "${name}" মুছে ফেলতে চান?`)) {
+    if (confirm(`Are you sure you want to delete collection "${name}"?`)) {
       await storeService.deleteCategory(id);
       await loadCategories();
     }
@@ -119,19 +112,19 @@ export const AdminCategories: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
-            ব্যাগ কালেকশন ও ক্যাটাগরি (Categories)
+            Store Collections
           </h1>
           <p className="text-xs text-[#7A7165] mt-1">
-            হোমপেজ ও শপে প্রদর্শিত সব ব্যাগ কালেকশন এখান থেকে যোগ, এডিট বা ডিলিট করুন।
+            Organize products into curated lifestyle departments.
           </p>
         </div>
 
         <button
           onClick={openAddModal}
-          className="px-4 py-2.5 bg-[#962D3E] hover:bg-[#7D2232] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+          className="px-4 py-2.5 bg-[#962D3E] hover:bg-[#7D2232] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>+ নতুন ব্যাগ কালেকশন যোগ করুন</span>
+          <span>Add New Collection</span>
         </button>
       </div>
 
@@ -169,14 +162,14 @@ export const AdminCategories: React.FC = () => {
                 <button
                   onClick={() => openEditModal(cat)}
                   className="p-1.5 text-[#595247] hover:text-[#962D3E] rounded-lg"
-                  title="Edit Category"
+                  title="Edit Collection"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDelete(cat.id, cat.nameEn)}
                   className="p-1.5 text-[#887F74] hover:text-[#D32F2F] rounded-lg"
-                  title="Delete Category"
+                  title="Delete Collection"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -192,7 +185,7 @@ export const AdminCategories: React.FC = () => {
           <div className="bg-white rounded-2xl border border-[#E7E0D3] max-w-lg w-full p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#F0EAE0] pb-4 mb-5">
               <h2 className="font-serif-luxury text-lg font-bold text-[#1E1E1E]">
-                {editingCategory ? 'Edit Category' : 'Create Category'}
+                {editingCategory ? 'Edit Collection' : 'Create Collection'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -205,7 +198,7 @@ export const AdminCategories: React.FC = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-xs">
               <div>
                 <label className="font-semibold text-[#3D362C] block mb-1">
-                  Category Name (English) *
+                  Collection Name (English) *
                 </label>
                 <input
                   type="text"
@@ -224,7 +217,7 @@ export const AdminCategories: React.FC = () => {
 
               <div>
                 <label className="font-semibold text-[#3D362C] block mb-1">
-                  ক্যাটাগরি নাম (বাংলা) *
+                  কালেকশন নাম (বাংলা) *
                 </label>
                 <input
                   type="text"
@@ -252,7 +245,7 @@ export const AdminCategories: React.FC = () => {
               <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#E7E0D3] flex flex-col gap-2">
                 <label className="font-bold text-[#1E1E1E] flex items-center gap-1.5">
                   <ImageIcon className="w-4 h-4 text-[#962D3E]" />
-                  <span>Category Visual Cover</span>
+                  <span>Collection Visual Cover</span>
                 </label>
                 <div className="flex gap-3 items-center">
                   {image && (

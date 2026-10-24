@@ -213,14 +213,8 @@ export const AdminProducts: React.FC = () => {
       shortDescriptionEn,
       descriptionBn,
       descriptionEn,
-      specificationsBn: editingProduct?.specificationsBn || {
-        'উপাদান': '১০০% অকৃত্রিম ফুল-গ্রেইন চামড়া ও টেকসই ক্যানভাস',
-        'ফিটিংস': 'মজবুত ব্রাস মেটাল ও প্রিমিয়াম জিপার',
-      },
-      specificationsEn: editingProduct?.specificationsEn || {
-        'Material': '100% Genuine Full-Grain Leather & Heavy-duty Canvas',
-        'Hardware': 'Solid Brass Hardware & Japanese YKK Zippers',
-      },
+      specificationsBn: editingProduct?.specificationsBn || {},
+      specificationsEn: editingProduct?.specificationsEn || {},
       variants: {
         colors: colors.length > 0 ? colors : undefined,
       },
@@ -299,13 +293,13 @@ export const AdminProducts: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-[#6B6357] font-medium shrink-0">Category:</span>
+          <span className="text-xs text-[#6B6357] font-medium shrink-0">Collection:</span>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="py-2 px-3 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl text-xs text-[#1E1E1E] focus:outline-none focus:border-[#962D3E]"
           >
-            <option value="all">All Categories</option>
+            <option value="all">All Collections</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nameEn}
@@ -322,7 +316,7 @@ export const AdminProducts: React.FC = () => {
             <thead className="bg-[#FAF7F2] text-[#696156] font-semibold border-b border-[#F0EAE0]">
               <tr>
                 <th className="py-3 px-4">Item</th>
-                <th className="py-3 px-4">Category</th>
+                <th className="py-3 px-4">Collection</th>
                 <th className="py-3 px-4">Price (BDT)</th>
                 <th className="py-3 px-4">Stock</th>
                 <th className="py-3 px-4">Badges</th>
@@ -379,7 +373,7 @@ export const AdminProducts: React.FC = () => {
                       )}
                       {p.isNew && (
                         <span className="px-1.5 py-0.5 bg-[#E8F4FD] text-[#0A66C2] text-[9px] font-bold rounded">
-                          New
+                          New Arrival
                         </span>
                       )}
                       {p.isBestSeller && (
@@ -422,7 +416,7 @@ export const AdminProducts: React.FC = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-[#F0EAE0] pb-4 mb-5">
               <h2 className="font-serif-luxury text-xl font-bold text-[#1E1E1E]">
-                {editingProduct ? 'Edit Product' : 'Add New Artisan Product'}
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -463,7 +457,7 @@ export const AdminProducts: React.FC = () => {
                     required
                     value={nameBn}
                     onChange={(e) => setNameBn(e.target.value)}
-                    placeholder="যেমন: নকশী কারুকার্য খাদি টিউনিপ কুর্তা"
+                    placeholder="যেমন: প্রিমিয়াম হ্যান্ডব্যাগ"
                     className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl font-bengali"
                   />
                 </div>
@@ -472,7 +466,7 @@ export const AdminProducts: React.FC = () => {
               {/* Row 2: Category & Slug */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-semibold text-[#3D362C] block mb-1">Category *</label>
+                  <label className="font-semibold text-[#3D362C] block mb-1">Collection *</label>
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
@@ -704,7 +698,7 @@ export const AdminProducts: React.FC = () => {
                       type="text"
                       value={newColorBn}
                       onChange={(e) => setNewColorBn(e.target.value)}
-                      placeholder="যেমন: মিডনাইট ব্ল্যাক"
+                      placeholder="যেমন: প্রিমিয়াম হ্যান্ডব্যাগ"
                       className="w-full px-2.5 py-1.5 bg-white border border-[#D5CCC0] rounded-lg text-xs font-bengali"
                     />
                   </div>
@@ -824,7 +818,7 @@ export const AdminProducts: React.FC = () => {
                     onChange={(e) => setIsNew(e.target.checked)}
                     className="accent-[#962D3E]"
                   />
-                  <span>New Arrival</span>
+                  <span>New Arrival (নতুন ব্যাগ)</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer font-medium">

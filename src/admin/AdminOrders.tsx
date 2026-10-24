@@ -14,12 +14,9 @@ import {
   Phone,
   MapPin,
   Calendar,
-  RefreshCw,
 } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import { useLanguage } from '../context/LanguageContext';
-import { isFirebaseConfigured, db } from '../lib/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { Order, OrderStatus } from '../types';
 
 export const AdminOrders: React.FC = () => {
@@ -32,42 +29,6 @@ export const AdminOrders: React.FC = () => {
 
   useEffect(() => {
     loadOrders();
-
-    const handleUpdate = () => {
-      storeService.getOrders().then(setOrders);
-    };
-
-    window.addEventListener('xora_orders_updated', handleUpdate);
-    window.addEventListener('storage', handleUpdate);
-
-    let unsubscribe: (() => void) | undefined;
-    if (isFirebaseConfigured && db) {
-      try {
-        unsubscribe = onSnapshot(
-          collection(db, 'orders'),
-          () => {
-            storeService.getOrders().then(setOrders);
-          },
-          (err) => {
-            console.warn('onSnapshot listener permission notice (auto-polling active):', err.message);
-          }
-        );
-      } catch (e) {
-        console.warn('onSnapshot listener error:', e);
-      }
-    }
-
-    // Auto-refresh orders every 15 seconds to ensure live cross-device sync
-    const interval = setInterval(() => {
-      storeService.getOrders().then(setOrders);
-    }, 15000);
-
-    return () => {
-      window.removeEventListener('xora_orders_updated', handleUpdate);
-      window.removeEventListener('storage', handleUpdate);
-      clearInterval(interval);
-      if (unsubscribe) unsubscribe();
-    };
   }, []);
 
   const loadOrders = async () => {
@@ -93,10 +54,8 @@ export const AdminOrders: React.FC = () => {
       'Phone',
       'Address',
       'District',
-      'Upazila',
       'Delivery Zone',
       'Payment Method',
-      'Sender Payment Number',
       'TrxID',
       'Subtotal (BDT)',
       'Delivery Fee (BDT)',
@@ -111,10 +70,8 @@ export const AdminOrders: React.FC = () => {
       `"${o.phone}"`,
       `"${o.address.replace(/"/g, '""')}"`,
       `"${o.district}"`,
-      `"${o.upazila || ''}"`,
       `"${o.deliveryZone}"`,
       `"${o.paymentMethod.toUpperCase()}"`,
-      `"${o.paymentNumber || ''}"`,
       `"${o.trxId || ''}"`,
       o.subtotal,
       o.deliveryCharge,
@@ -182,25 +139,13 @@ export const AdminOrders: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          <button
-            onClick={() => loadOrders()}
-            disabled={loading}
-            className="px-3.5 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
-            title="Refresh orders list"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#962D3E] ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all"
-          >
-            <Download className="w-4 h-4 text-[#962D3E]" />
-            <span>Export Orders (CSV)</span>
-          </button>
-        </div>
+        <button
+          onClick={handleExportCSV}
+          className="px-4 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto"
+        >
+          <Download className="w-4 h-4 text-[#962D3E]" />
+          <span>Export Orders (CSV)</span>
+        </button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -280,9 +225,7 @@ export const AdminOrders: React.FC = () => {
                       <p className="text-[11px] text-[#7A7165] tabular-nums font-medium">{o.phone}</p>
                     </td>
                     <td className="py-3.5 px-4 max-w-xs">
-                      <p className="font-semibold text-[#1E1E1E]">
-                        {o.district}{o.upazila ? ` · ${o.upazila}` : ''}
-                      </p>
+                      <p className="font-semibold text-[#1E1E1E]">{o.district}</p>
                       <p className="text-[11px] text-[#7A7165] truncate">{o.address}</p>
                     </td>
                     <td className="py-3.5 px-4">
@@ -297,11 +240,6 @@ export const AdminOrders: React.FC = () => {
                       <span className="font-bold text-[11px] uppercase text-[#3D362C]">
                         {o.paymentMethod}
                       </span>
-                      {o.paymentNumber && (
-                        <p className="text-[10px] font-mono text-[#7A7165]">
-                          Sender: {o.paymentNumber}
-                        </p>
-                      )}
                       {o.trxId && (
                         <p className="text-[10px] font-mono text-[#0A66C2]">
                           Trx: {o.trxId}
@@ -378,7 +316,7 @@ export const AdminOrders: React.FC = () => {
                   <h2 className="font-serif-luxury text-2xl font-bold tracking-tight text-[#1E1E1E]">
                     Xora Lifestyle
                   </h2>
-                  <p className="text-[11px] text-[#6B6357]">Handcrafted Heritage Bangladesh</p>
+                  <p className="text-[11px] text-[#6B6357]">Trendy Premium Bags Bangladesh</p>
                   <p className="text-[11px] text-[#6B6357]">House 12, Road 7, Dhanmondi, Dhaka</p>
                   <p className="text-[11px] text-[#6B6357]">Hotline: +880 1711-234567</p>
                 </div>
@@ -414,7 +352,7 @@ export const AdminOrders: React.FC = () => {
                   </p>
                   <p className="text-xs text-[#1E1E1E]">{activeInvoiceOrder.address}</p>
                   <p className="font-bold text-xs text-[#962D3E] mt-0.5">
-                    {activeInvoiceOrder.upazila ? `${activeInvoiceOrder.upazila}, ` : ''}{activeInvoiceOrder.district} ({activeInvoiceOrder.deliveryZone})
+                    {activeInvoiceOrder.district} ({activeInvoiceOrder.deliveryZone})
                   </p>
                 </div>
               </div>
@@ -467,7 +405,7 @@ export const AdminOrders: React.FC = () => {
                   <div className="flex justify-between py-1 border-b border-[#F0EAE0]">
                     <span className="text-[#6B6357]">Delivery Charge:</span>
                     <span className="font-semibold tabular-nums">
-                      {formatPrice(activeInvoiceOrder.deliveryCharge)}
+                      {activeInvoiceOrder.deliveryCharge === 0 ? 'FREE' : formatPrice(activeInvoiceOrder.deliveryCharge)}
                     </span>
                   </div>
                   <div className="flex justify-between py-1.5 text-sm font-bold border-b-2 border-[#1E1E1E]">
@@ -483,14 +421,13 @@ export const AdminOrders: React.FC = () => {
               <div className="pt-2 border-t border-[#F0EAE0] flex flex-col gap-1 text-[11px] text-[#7A7165]">
                 <p>
                   Payment Method: <strong>{activeInvoiceOrder.paymentMethod.toUpperCase()}</strong>
-                  {activeInvoiceOrder.paymentNumber && <span> · Sender Mobile: <strong>{activeInvoiceOrder.paymentNumber}</strong></span>}
                   {activeInvoiceOrder.trxId && <span> · TrxID: <strong>{activeInvoiceOrder.trxId}</strong></span>}
                 </p>
                 {activeInvoiceOrder.notes && (
                   <p>Order Notes: <em>"{activeInvoiceOrder.notes}"</em></p>
                 )}
                 <p className="mt-4 text-center text-[10px] text-[#9E9589]">
-                  Thank you for supporting authentic Bangladeshi artisans with Xora Lifestyle!
+                  Thank you for shopping with Xora Lifestyle!
                 </p>
               </div>
 

@@ -38,7 +38,7 @@ export const Returns: React.FC = () => {
               <p>
                 {language === 'bn'
                   ? 'পণ্য হাতে পাওয়ার পর যদি সাইজ না মেলে, কোনো ম্যানুফ্যাকচারিং ত্রুটি থাকে বা ছবিতে প্রদর্শিত রঙের সাথে উল্লেখযোগ্য অমিল পাওয়া যায়, তবে আপনি ৭ দিনের মধ্যে তা পরিবর্তনের জন্য অনুরোধ জানাতে পারবেন।'
-                  : 'If the size does not fit comfortably, or if there is any craftsmanship defect, you may request an exchange within 7 days of receiving your order.'}
+                  : 'If the size does not fit comfortably, or if there is any manufacturing defect, you may request an exchange within 7 days of receiving your order.'}
               </p>
             </div>
           </div>

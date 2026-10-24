@@ -40,7 +40,7 @@ export const MobileBottomNav: React.FC = () => {
 
         {/* Categories Shortcut */}
         <NavLink
-          to="/shop?filter=categories"
+          to="/collections"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center py-1 transition-colors ${
               isActive ? 'text-[#962D3E]' : 'text-[#6B645B] hover:text-[#1E1E1E]'
@@ -48,7 +48,7 @@ export const MobileBottomNav: React.FC = () => {
           }
         >
           <LayoutGrid className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] font-medium tracking-tight">{t('navCategories')}</span>
+          <span className="text-[10px] font-medium tracking-tight">{t('navCollection')}</span>
         </NavLink>
 
         {/* Cart Trigger */}

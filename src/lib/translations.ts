@@ -3,8 +3,8 @@ export const translations = {
     // Brand & Tagline
     brandName: 'Xora Lifestyle',
     brandSub: 'জোড়া লাইফস্টাইল',
-    tagline: 'প্রিমিয়াম চামড়া ও ক্যানভাস ব্যাগের বিশ্বস্ত ঠিকানা',
-    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৮০, ঢাকার বাইরে ৳১৫০',
+    tagline: 'প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগের বিশ্বস্ত ঠিকানা',
+    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৭০, ঢাকার বাইরে ৳১৩০ | ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি!',
     
     // Navigation
     navHome: 'হোম',
@@ -16,6 +16,12 @@ export const translations = {
     navContact: 'যোগাযোগ',
     navReturns: 'রিটার্ন পলিসি',
     navDelivery: 'ডেলিভারি তথ্য',
+    navCollection: 'কালেকশন',
+    navNewArrivals: 'নতুন ব্যাগ',
+    collectionsTitle: 'কালেকশন',
+    collectionsSub: 'স্টাইল ও উপলক্ষ অনুযায়ী কালেকশন',
+    newArrivalsTitle: 'নতুন ব্যাগ',
+    newArrivalsSub: 'সবচেয়ে নতুন আসা ব্যাগ',
     searchPlaceholder: 'হ্যান্ডব্যাগ, টোট বা ব্যাকপ্যাক খুঁজুন...',
     
     // Currency & Metrics
@@ -27,7 +33,7 @@ export const translations = {
     
     // Home Sections
     heroHeadline: 'আপনার প্রতিদিনের স্টাইলে প্রিমিয়াম ব্যাগের আভিজাত্য',
-    heroSub: 'প্রিমিয়াম খাঁটি চামড়ার হ্যান্ডব্যাগ, স্পেসিয়াস টোট, ব্যাকপ্যাক, ট্রাভেল ব্যাগ ও স্টাইলিশ ক্লাচের অনন্য কালেকশন।',
+    heroSub: 'প্রিমিয়াম কোয়ালিটির হ্যান্ডব্যাগ, স্পেসিয়াস টোট, ব্যাকপ্যাক, ট্রাভেল ব্যাগ ও স্টাইলিশ ক্লাচের আধুনিক কালেকশন।',
     heroCta: 'ব্যাগ কালেকশন দেখুন',
     heroSecondary: 'আমাদের সম্পর্কে',
     exploreCategories: 'ব্যাগ ক্যাটাগরি',
@@ -46,8 +52,8 @@ export const translations = {
     trustCodDesc: 'ব্যাগ হাতে পেয়ে চেক করে মূল্য পরিশোধ করুন',
     trustDeliveryTitle: 'সারাদেশে দ্রুত ডেলিভারি',
     trustDeliveryDesc: '৬৪টি জেলায় ২ থেকে ৫ কার্যদিবসে ডেলিভারি',
-    trustQualityTitle: '১০০% অকৃত্রিম চামড়া ও হস্তশিল্প',
-    trustQualityDesc: 'সেরা মানের লেদার, মজবুত ক্যানভাস ও মাস্টার কারিগরদের কাজ',
+    trustQualityTitle: 'প্রিমিয়াম কোয়ালিটি ও আধুনিক ডিজাইন',
+    trustQualityDesc: 'ট্রেন্ডি ডিজাইন ও আকর্ষণীয় লুকের ব্যাগ',
     trustReturnTitle: 'সহজ রিটার্ন সুবিধা',
     trustReturnDesc: '৭ দিনের মধ্যে সহজ পরিবর্তন ও রিটার্ন পলিসি',
 
@@ -74,8 +80,8 @@ export const translations = {
     deliveryFee: 'ডেলিভারি চার্জ',
     total: 'সর্বমোট',
     proceedToCheckout: 'চেকআউট করুন',
-    freeDeliveryUnlocked: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি',
-    freeDeliveryAway: 'ঢাকার ভেতরে ৳৮০, ঢাকার বাইরে ৳১৫০',
+    freeDeliveryUnlocked: 'অভিনন্দন! আপনি ফ্রি ডেলিভারি পেয়েছেন',
+    freeDeliveryAway: 'টাকার কেনাকাটা করলে পাচ্ছেন ফ্রি ডেলিভারি!',
     remove: 'মুছে ফেলুন',
     
     // Checkout
@@ -91,8 +97,8 @@ export const translations = {
     district: 'জেলা নির্বাচন করুন',
     selectDistrict: 'আপনার জেলা বেছে নিন',
     deliveryMethod: 'ডেলিভারি এলাকা ও চার্জ',
-    insideDhaka: 'ঢাকার ভেতরে',
-    outsideDhaka: 'ঢাকার বাইরে',
+    insideDhaka: 'ঢাকার ভেতরে (৳৭০)',
+    outsideDhaka: 'ঢাকার বাইরে (৳১৩০)',
     paymentMethod: 'পেমেন্ট মেথড নির্বাচন করুন',
     paymentCod: 'ক্যাশ অন ডেলিভারি (Cash on Delivery)',
     paymentCodDesc: 'পণ্য হাতে পেয়ে ডেলিভারিম্যানকে ক্যাশ টাকা প্রদান করবেন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।',
@@ -143,7 +149,7 @@ export const translations = {
     
     // Filters & Shop
     shopTitle: 'ব্যাগ কালেকশন',
-    shopSub: 'হাতে গড়া প্রিমিয়াম লেদার ও ক্যানভাস ব্যাগ সমগ্র',
+    shopSub: 'আধুনিক ডিজাইন ও আকর্ষণীয় লুকের প্রিমিয়াম কোয়ালিটির ব্যাগ কালেকশন',
     filterCategory: 'ক্যাটাগরি',
     filterAll: 'সব ব্যাগ',
     filterPrice: 'মূল্য সীমা',
@@ -156,7 +162,7 @@ export const translations = {
     noProductsFound: 'কোনো ব্যাগ পাওয়া যায়নি। দয়া করে অন্য ফিল্টার চেষ্টা করুন।',
     
     // Footer & Info
-    footerAboutText: 'Xora Lifestyle একটি বাংলাদেশি ব্যাগ ব্র্যান্ড যা প্রিমিয়াম খাঁটি চামড়া, টেকসই ক্যানভাস ও মাস্টার কারিগরদের হাতের ছোঁয়ায় আধুনিক ও দীর্ঘস্থায়ী ব্যাগ প্রস্তুত করে।',
+    footerAboutText: 'Xora Lifestyle একটি বাংলাদেশি ব্যাগ ব্র্যান্ড, যা চীনের প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগ আধুনিক ডিজাইন ও আকর্ষণীয় লুকে বাংলাদেশে নিয়ে আসে।',
     customerCare: 'কাস্টমার কেয়ার',
     quickLinks: 'প্রয়োজনীয় লিংক',
     contactInfo: 'যোগাযোগের ঠিকানা',
@@ -170,9 +176,9 @@ export const translations = {
   en: {
     // Brand & Tagline
     brandName: 'Xora Lifestyle',
-    brandSub: 'Handcrafted Heritage Bags',
-    tagline: 'Handcrafted Leather & Everyday Bags for Bangladesh',
-    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳80, Outside Dhaka ৳150',
+    brandSub: 'Trendy Premium Bags',
+    tagline: 'Premium-Quality Trendy Bags for Bangladesh',
+    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳70, Outside Dhaka ৳130 | Free Shipping on Orders over ৳3,000!',
     
     // Navigation
     navHome: 'Home',
@@ -184,6 +190,12 @@ export const translations = {
     navContact: 'Contact',
     navReturns: 'Return Policy',
     navDelivery: 'Delivery Info',
+    navCollection: 'Collection',
+    navNewArrivals: 'New Arrivals',
+    collectionsTitle: 'Collections',
+    collectionsSub: 'Browse bags by style and occasion',
+    newArrivalsTitle: 'New Arrivals',
+    newArrivalsSub: 'Our latest bags',
     searchPlaceholder: 'Search handbags, totes, backpacks...',
     
     // Currency & Metrics
@@ -195,11 +207,11 @@ export const translations = {
     
     // Home Sections
     heroHeadline: 'Style your every day with Xora bags',
-    heroSub: 'Artisanal handcrafted leather handbags, spacious totes, commuter backpacks, and durable travel gear made for Bangladesh.',
+    heroSub: 'Premium-quality handbags, spacious totes, backpacks, travel bags and stylish clutches with modern designs and an attractive look.',
     heroCta: 'Explore Bags',
     heroSecondary: 'Our Story',
     exploreCategories: 'Bag Categories',
-    categoriesSub: 'Discover handcrafted leather and canvas bags tailored for every journey',
+    categoriesSub: 'Discover premium-quality trendy bags for every occasion',
     featuredProducts: 'Popular Bags',
     newArrivals: 'New Arrivals',
     bestSellers: 'Best Sellers',
@@ -214,8 +226,8 @@ export const translations = {
     trustCodDesc: 'Inspect your bag upon doorstep arrival before payment',
     trustDeliveryTitle: 'Fast Nationwide Delivery',
     trustDeliveryDesc: 'Direct transit across all 64 districts in 2-5 days',
-    trustQualityTitle: '100% Genuine Leather & Craft',
-    trustQualityDesc: 'Finest full-grain leathers, durable brass hardware, and heavy-duty canvas',
+    trustQualityTitle: 'Premium Quality & Modern Design',
+    trustQualityDesc: 'Trendy designs and an attractive look in every bag',
     trustReturnTitle: 'Hassle-Free Returns',
     trustReturnDesc: '7 days seamless exchange and return protection',
 
@@ -242,8 +254,8 @@ export const translations = {
     deliveryFee: 'Delivery Fee',
     total: 'Total',
     proceedToCheckout: 'Proceed to Checkout',
-    freeDeliveryUnlocked: 'Nationwide Cash on Delivery Available',
-    freeDeliveryAway: '৳80 inside Dhaka, ৳150 outside Dhaka',
+    freeDeliveryUnlocked: 'Congratulations! You qualified for Free Shipping',
+    freeDeliveryAway: 'away from Free Nationwide Delivery!',
     remove: 'Remove',
     
     // Checkout
@@ -259,8 +271,8 @@ export const translations = {
     district: 'Select District',
     selectDistrict: 'Choose your district',
     deliveryMethod: 'Delivery Area & Rate',
-    insideDhaka: 'Inside Dhaka',
-    outsideDhaka: 'Outside Dhaka',
+    insideDhaka: 'Inside Dhaka (৳70)',
+    outsideDhaka: 'Outside Dhaka (৳130)',
     paymentMethod: 'Select Payment Method',
     paymentCod: 'Cash on Delivery (COD)',
     paymentCodDesc: 'Pay cash to the delivery representative when you receive your package. No advance required.',
@@ -310,8 +322,8 @@ export const translations = {
     demoOrderHint: 'Try sample demo order: Order ID "XOR-1001", Phone "01712345678"',
     
     // Filters & Shop
-    shopTitle: 'Handcrafted Bag Collection',
-    shopSub: 'Artisanal leather and durable canvas bags tailored for modern journeys',
+    shopTitle: 'Premium Bag Collection',
+    shopSub: 'Trendy bags with modern designs and an attractive look',
     filterCategory: 'Category',
     filterAll: 'All Bags',
     filterPrice: 'Price Range',
@@ -324,7 +336,7 @@ export const translations = {
     noProductsFound: 'No bags match your criteria. Try adjusting your filters.',
     
     // Footer & Info
-    footerAboutText: 'Xora Lifestyle is a premier Bangladeshi bag brand crafting premium genuine leather handbags, commuter backpacks, versatile totes, and travel bags for modern lifestyle.',
+    footerAboutText: 'Xora Lifestyle is a Bangladeshi bag brand bringing premium-quality trendy bags from China to Bangladesh, with modern designs and an attractive look.',
     customerCare: 'Customer Care',
     quickLinks: 'Quick Links',
     contactInfo: 'Contact Information',

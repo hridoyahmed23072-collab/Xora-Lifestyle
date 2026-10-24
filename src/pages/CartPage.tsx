@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSettings } from '../hooks/useSettings';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -8,6 +9,10 @@ export const CartPage: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
+
+  const freeShippingThreshold = useSettings().freeShippingMinAmount || 0;
+  const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
+  const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
   if (cart.length === 0) {
     return (
@@ -20,8 +25,8 @@ export const CartPage: React.FC = () => {
         </h1>
         <p className="text-xs sm:text-sm text-[#7A7165] mb-6">
           {language === 'bn'
-            ? 'আমাদের হস্তশিল্প খাদি ও লেদার কালেকশন থেকে আপনার পছন্দের পণ্যগুলো ব্যাগে যুক্ত করুন।'
-            : 'Explore our artisan handloom and genuine leather collections to find timeless essentials.'}
+            ? 'আমাদের কালেকশন থেকে আপনার পছন্দের ব্যাগ বেছে নিন।'
+            : 'Explore our bag collection and pick your favourite.'}
         </p>
         <Link
           to="/shop"
@@ -46,6 +51,26 @@ export const CartPage: React.FC = () => {
           {/* Cart Items Column (lg:col-span-8) */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-[#E7E0D3] p-5 sm:p-6 shadow-sm flex flex-col divide-y divide-[#F0EAE0]">
             
+            {/* Free Shipping Strip */}
+            {freeShippingThreshold > 0 && (
+            <div className="pb-5">
+              <div className="flex justify-between items-center text-xs font-semibold text-[#4A433A] mb-1.5">
+                <span>
+                  {amountNeeded === 0
+                    ? t('freeDeliveryUnlocked')
+                    : `${formatPrice(amountNeeded)} ${t('freeDeliveryAway')}`}
+                </span>
+                <span className="text-[#962D3E]">{progressPercent}%</span>
+              </div>
+              <div className="w-full bg-[#EFE9DF] h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-[#962D3E] h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+            )}
+
             {/* Items */}
             {cart.map((item, idx) => (
               <div key={`${item.productId}-${item.selectedColor}-${item.selectedSize}-${idx}`} className="py-5 flex gap-4 first:pt-5">
@@ -161,7 +186,7 @@ export const CartPage: React.FC = () => {
               <span>
                 {language === 'bn'
                   ? 'ক্যাশ অন ডেলিভারি ও নিরাপদ পেমেন্ট গ্যারান্টি'
-                  : 'Cash on delivery and 100% genuine satisfaction guarantee'}
+                  : 'Cash on delivery and secure payment guarantee'}
               </span>
             </div>
           </div>
