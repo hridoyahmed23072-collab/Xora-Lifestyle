@@ -20,11 +20,13 @@ export const TrackOrder: React.FC = () => {
     setLoading(true);
     setError(null);
     setOrder(null);
-
     try {
       const result = await storeService.getOrderById(orderId.trim());
       if (result) {
-        if (phone.trim() && !result.customerInfo.phone.includes(phone.trim())) {
+        const orderPhone = (result.phone || result.customerInfo?.phone || '').replace(/[^0-9]/g, '');
+        const checkPhone = phone.trim().replace(/[^0-9]/g, '');
+
+        if (checkPhone && orderPhone && !orderPhone.includes(checkPhone) && !checkPhone.includes(orderPhone)) {
           setError('প্রদত্ত ফোন নম্বরের সাথে অর্ডারের তথ্য মিলছে না।');
         } else {
           setOrder(result);

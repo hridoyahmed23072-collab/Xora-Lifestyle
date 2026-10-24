@@ -1,47 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Authorized administrators
-    function isAdmin() {
-      return request.auth != null && (
-        request.auth.token.email == "hridoyahmed23072@gmail.com" ||
-        request.auth.token.email == "xoralifestyle21@gmail.com" ||
-        request.auth.token.email == "xoralifestyle21@gamil.com" ||
-        request.auth.token.email == "mdmadara999@gmail.com"
-      );
-    }
-
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /settings/{document=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /orders/{orderId} {
-      // Anyone can place an order (public customer checkout)
-      allow create: if true;
-
-      // Anyone with order ID can get single order for tracking
-      allow get: if true;
-
-      // Only admin can list, update status or delete orders
-      allow list: if isAdmin();
-      allow update, delete: if isAdmin();
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

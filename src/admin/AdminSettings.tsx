@@ -161,7 +161,7 @@ export const AdminSettings: React.FC = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="font-semibold block mb-1">Inside Dhaka Rate (৳) *</label>
               <input
@@ -185,19 +185,6 @@ export const AdminSettings: React.FC = () => {
                 value={settings.outsideDhakaCharge}
                 onChange={(e) =>
                   setSettings({ ...settings, outsideDhakaCharge: Number(e.target.value) })
-                }
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl tabular-nums font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold block mb-1">Free Shipping Threshold (৳)</label>
-              <input
-                type="number"
-                min="0"
-                value={settings.freeShippingMinAmount || 3000}
-                onChange={(e) =>
-                  setSettings({ ...settings, freeShippingMinAmount: Number(e.target.value) })
                 }
                 className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl tabular-nums font-bold"
               />

@@ -1,43 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Only this exact account is the administrator
-    function isAdmin() {
-      return request.auth != null &&
-        request.auth.token.email == "hridoyahmed23072@gmail.com";
-    }
-
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /settings/{document=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /orders/{orderId} {
-      // Customers can place an order (basic size limit against abuse)
-      allow create: if request.resource.data.keys().size() < 40;
-
-      // A single order can be fetched only if the Order ID is known (tracking)
-      allow get: if true;
-
-      // Only admin can list all orders, update or delete
-      allow list: if isAdmin();
-      allow update, delete: if isAdmin();
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

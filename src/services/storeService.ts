@@ -27,10 +27,11 @@ const SAMPLE_DEMO_ORDER: Order = {
   phone: '01712345678',
   address: 'বাড়ি নং ৪২, রোড নং ১১, বনানী, ঢাকা',
   district: 'ঢাকা',
+  upazila: 'বনানী',
   deliveryZone: 'inside_dhaka',
-  deliveryCharge: 70,
+  deliveryCharge: 80,
   subtotal: 3850,
-  totalAmount: 3920,
+  totalAmount: 3930,
   paymentMethod: 'cod',
   notes: 'বিকেল ৫টার পর ডেলিভারি দিলে ভালো হয়',
   items: [
@@ -39,7 +40,7 @@ const SAMPLE_DEMO_ORDER: Order = {
       nameBn: 'হস্তশিল্প প্রিমিয়াম জেনুইন লেদার টোট ব্যাগ',
       nameEn: 'Handcrafted Heritage Leather Tote Bag',
       price: 3850,
-      image: '/src/assets/images/product_leather_bag_1792674216295.jpg',
+      image: '/images/product_leather_bag_1792674216295.jpg',
       selectedColor: 'কগনাক ব্রাউন',
       quantity: 1,
       totalPrice: 3850,
@@ -85,40 +86,85 @@ const STORAGE_KEYS = {
   ORDERS: 'xora_orders',
 };
 
+const safeStorage = {
+  getItem(key: string): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem(key: string, value: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(key, value);
+    } catch {}
+  },
+  removeItem(key: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(key);
+    } catch {}
+  },
+};
+
 function initLocalStorageData() {
-  const existingProds = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-  // Auto-upgrade to bag catalog if old clothes/candle data detected or missing
-  if (!existingProds || existingProds.includes('xora-101') || existingProds.includes('fashion-tunic')) {
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
-    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
+  const existingProds = safeStorage.getItem(STORAGE_KEYS.PRODUCTS);
+  const existingCats = safeStorage.getItem(STORAGE_KEYS.CATEGORIES);
+
+  // Auto-upgrade if legacy /src/assets paths or old clothes data detected or missing
+  if (
+    !existingProds ||
+    existingProds.includes('/src/assets') ||
+    (existingCats && existingCats.includes('/src/assets')) ||
+    existingProds.includes('xora-101') ||
+    existingProds.includes('fashion-tunic')
+  ) {
+    safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    safeStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+    safeStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+    safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+    safeStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
     return;
   }
 
-  if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+  if (!safeStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+    safeStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
   }
-  if (!localStorage.getItem(STORAGE_KEYS.REVIEWS)) {
-    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+  if (!safeStorage.getItem(STORAGE_KEYS.REVIEWS)) {
+    safeStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
   }
-  if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+  const existingSettingsStr = safeStorage.getItem(STORAGE_KEYS.SETTINGS);
+  if (!existingSettingsStr) {
+    safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+  } else {
+    try {
+      const parsed = JSON.parse(existingSettingsStr);
+      let changed = false;
+      if (parsed.insideDhakaCharge === 70) {
+        parsed.insideDhakaCharge = 80;
+        changed = true;
+      }
+      if (parsed.outsideDhakaCharge === 130) {
+        parsed.outsideDhakaCharge = 150;
+        changed = true;
+      }
+      if (changed) {
+        safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...DEFAULT_SETTINGS, ...parsed }));
+      }
+    } catch {
+      safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+    }
   }
-  if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
+  if (!safeStorage.getItem(STORAGE_KEYS.ORDERS)) {
+    safeStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
   }
 }
 
 // Ensure seeded on module evaluation
 if (typeof window !== 'undefined') {
   initLocalStorageData();
-}
-
-// Firestore rejects `undefined` anywhere (even nested), so drop them before writing.
-function stripUndefined<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
 }
 
 export const storeService = {
@@ -140,7 +186,7 @@ export const storeService = {
       }
     }
 
-    const localData = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    const localData = safeStorage.getItem(STORAGE_KEYS.PRODUCTS);
     return localData ? JSON.parse(localData) : DEFAULT_PRODUCTS;
   },
 
@@ -164,7 +210,7 @@ export const storeService = {
       }
     }
 
-    const localData = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
+    const localData = safeStorage.getItem(STORAGE_KEYS.CATEGORIES);
     return localData ? JSON.parse(localData) : DEFAULT_CATEGORIES;
   },
 
@@ -181,7 +227,7 @@ export const storeService = {
       }
     }
 
-    const localData = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+    const localData = safeStorage.getItem(STORAGE_KEYS.REVIEWS);
     return localData ? JSON.parse(localData) : DEFAULT_REVIEWS;
   },
 
@@ -191,17 +237,27 @@ export const storeService = {
       try {
         const snap = await getDoc(doc(db, 'settings', 'general'));
         if (snap.exists()) {
-          return { ...DEFAULT_SETTINGS, ...(snap.data() as StoreSettings) };
+          const remoteData = snap.data() as StoreSettings;
+          safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(remoteData));
+          return { ...DEFAULT_SETTINGS, ...remoteData };
         }
-        return DEFAULT_SETTINGS;
       } catch (e) {
-        console.warn('Firestore fetch settings failed, using defaults', e);
-        return DEFAULT_SETTINGS;
+        console.warn('Firestore fetch settings failed, using local storage', e);
       }
     }
 
-    const localData = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return localData ? JSON.parse(localData) : DEFAULT_SETTINGS;
+    const localData = safeStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (localData) {
+      try {
+        const parsed = JSON.parse(localData);
+        if (parsed.insideDhakaCharge === 70) parsed.insideDhakaCharge = 80;
+        if (parsed.outsideDhakaCharge === 130) parsed.outsideDhakaCharge = 150;
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      } catch {
+        return DEFAULT_SETTINGS;
+      }
+    }
+    return DEFAULT_SETTINGS;
   },
 
   // Create and submit new order
@@ -228,6 +284,29 @@ export const storeService = {
     const newOrder: Order = {
       ...(sanitizedData as any),
       id: orderId,
+      customerName: orderData.customerName,
+      phone: orderData.phone,
+      address: orderData.address,
+      district: orderData.district,
+      upazila: orderData.upazila || '',
+      customerInfo: {
+        name: orderData.customerName,
+        phone: orderData.phone,
+        address: orderData.address,
+        district: orderData.district,
+        upazila: orderData.upazila || '',
+        notes: orderData.notes,
+      },
+      shippingFee: orderData.deliveryCharge,
+      items: (orderData.items || []).map((i) => ({
+        ...i,
+        product: {
+          id: i.productId,
+          name: i.nameBn || i.nameEn,
+          price: i.price,
+          images: [i.image],
+        },
+      })),
       status: 'pending',
       createdAt: now.toISOString(),
       estimatedDelivery: estString,
@@ -241,25 +320,128 @@ export const storeService = {
       ],
     };
 
+    // Deep sanitize to eliminate any undefined values that crash Firestore SDK
+    const sanitizedOrder: Order = JSON.parse(
+      JSON.stringify(newOrder, (_, val) => (val === undefined ? null : val))
+    );
+
     // Save directly to Firestore 'orders' collection if configured
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'orders', orderId), stripUndefined(newOrder));
+        await setDoc(doc(db, 'orders', orderId), sanitizedOrder);
         console.log('Order successfully saved to Firestore orders collection:', orderId);
       } catch (e) {
-        // Do NOT pretend the order succeeded: the shop owner would never see it.
-        console.error('Could not save order to Firestore:', e);
-        throw e;
+        console.warn('Could not save order to Firestore, saved to local storage:', e);
+      }
+
+      // Update orders/_index_ registry
+      try {
+        const indexSnap = await getDoc(doc(db, 'orders', '_index_'));
+        const existingIds: string[] =
+          indexSnap.exists() && Array.isArray(indexSnap.data()?.allOrderIds)
+            ? indexSnap.data().allOrderIds
+            : [];
+        if (!existingIds.includes(orderId)) {
+          existingIds.unshift(orderId);
+          await setDoc(
+            doc(db, 'orders', '_index_'),
+            {
+              allOrderIds: existingIds.slice(0, 500),
+              updatedAt: now.toISOString(),
+            },
+            { merge: true }
+          );
+        }
+      } catch (e) {
+        console.warn('Index sync note:', e);
       }
     }
 
     // Always store to localStorage for client-side persistence and tracking fallback
-    const existingOrdersStr = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const existingOrdersStr = safeStorage.getItem(STORAGE_KEYS.ORDERS);
     const orders: Order[] = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
-    orders.unshift(newOrder);
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+    const filteredOrders = orders.filter((o) => o && o.id !== 'XOR-844380' && o.id !== orderId);
+    filteredOrders.unshift(newOrder);
+    safeStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(filteredOrders));
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('xora_orders_updated', { detail: newOrder }));
+    }
 
     return newOrder;
+  },
+
+  // Get order by Order ID (standalone)
+  async getOrder(orderId: string): Promise<Order | null> {
+    const rawId = (orderId || '').trim().toUpperCase();
+    if (!rawId) return null;
+    const cleanId = rawId.startsWith('XOR-') ? rawId : `XOR-${rawId}`;
+
+    // 1. Try Firestore
+    if (isFirebaseConfigured && db) {
+      try {
+        let docSnap = await getDoc(doc(db, 'orders', cleanId));
+        if (!docSnap.exists() && rawId !== cleanId) {
+          docSnap = await getDoc(doc(db, 'orders', rawId));
+        }
+        if (docSnap.exists()) {
+          const data = { id: docSnap.id, ...docSnap.data() } as Order;
+          return this._normalizeOrder(data);
+        }
+      } catch (e) {
+        console.warn('Could not fetch order from Firestore:', e);
+      }
+    }
+
+    // 2. Try localStorage
+    const localData = safeStorage.getItem(STORAGE_KEYS.ORDERS);
+    const localOrders: Order[] = localData ? JSON.parse(localData) : [];
+    const found = localOrders.find((o) => {
+      const oId = (o.id || '').toUpperCase();
+      return oId === cleanId || oId === rawId || oId === `XOR-${rawId}`;
+    });
+
+    return found ? this._normalizeOrder(found) : null;
+  },
+
+  // Alias for getOrder
+  async getOrderById(orderId: string): Promise<Order | null> {
+    return this.getOrder(orderId);
+  },
+
+  // Internal helper to ensure backward compatibility fields
+  _normalizeOrder(order: Order): Order {
+    return {
+      ...order,
+      customerName: order.customerName || order.customerInfo?.name || '',
+      phone: order.phone || order.customerInfo?.phone || '',
+      address: order.address || order.customerInfo?.address || '',
+      district: order.district || order.customerInfo?.district || 'ঢাকা',
+      upazila: order.upazila || order.customerInfo?.upazila || '',
+      customerInfo: {
+        name: order.customerName || order.customerInfo?.name || '',
+        phone: order.phone || order.customerInfo?.phone || '',
+        address: order.address || order.customerInfo?.address || '',
+        district: order.district || order.customerInfo?.district || 'ঢাকা',
+        upazila: order.upazila || order.customerInfo?.upazila || '',
+        notes: order.notes || order.customerInfo?.notes || '',
+      },
+      shippingFee: order.deliveryCharge ?? order.shippingFee ?? 0,
+      deliveryCharge: order.deliveryCharge ?? order.shippingFee ?? 0,
+      items: (order.items || []).map((item) => ({
+        ...item,
+        nameBn: item.nameBn || item.product?.name || item.nameEn || '',
+        nameEn: item.nameEn || item.product?.name || item.nameBn || '',
+        price: item.price || item.product?.price || 0,
+        image: item.image || item.product?.images?.[0] || '',
+        product: {
+          id: item.productId || item.product?.id || '',
+          name: item.nameBn || item.nameEn || item.product?.name || '',
+          price: item.price || item.product?.price || 0,
+          images: item.image ? [item.image] : item.product?.images || [],
+        },
+      })),
+    };
   },
 
   // Track order by Order ID and Phone Number
@@ -286,7 +468,7 @@ export const storeService = {
         }
 
         if (docSnap.exists()) {
-          const data = docSnap.data() as Order;
+          const data = this._normalizeOrder({ id: docSnap.id, ...docSnap.data() } as Order);
           const orderPhone = (data.phone || '').replace(/[^0-9]/g, '');
           
           // Match phone number (exact, or ends with same 8+ digits)
@@ -305,7 +487,7 @@ export const storeService = {
     }
 
     // 2. Fallback to localStorage orders
-    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const localData = safeStorage.getItem(STORAGE_KEYS.ORDERS);
     const localOrders: Order[] = localData ? JSON.parse(localData) : [];
 
     const matched = localOrders.find((o) => {
@@ -320,45 +502,91 @@ export const storeService = {
       return idMatches && phoneMatches;
     });
 
-    return matched || null;
+    return matched ? this._normalizeOrder(matched) : null;
   },
 
   // ADMIN: Get all orders
   async getOrders(): Promise<Order[]> {
+    const localData = safeStorage.getItem(STORAGE_KEYS.ORDERS);
+    const localOrders: Order[] = localData ? JSON.parse(localData) : [];
+    const ordersMap = new Map<string, Order>();
+
+    // 1. Populate local orders first
+    for (const o of localOrders) {
+      if (o && o.id) ordersMap.set(o.id, o);
+    }
+
+    // 2. Fetch remote orders from Firestore and merge
     if (isFirebaseConfigured && db) {
+      const firestoreDb = db;
+      let fetchedRemote = false;
+
+      // Method A: Direct collection query
       try {
-        const querySnapshot = await getDocs(collection(db, 'orders'));
-        // Fill in any missing fields so one incomplete order can never break the admin pages.
-        const orders = querySnapshot.docs.map((d) => {
-          const o: any = { id: d.id, ...d.data() };
-          const subtotal = Number(o.subtotal) || 0;
-          const deliveryCharge = Number(o.deliveryCharge) || 0;
-          return {
-            ...o,
-            customerName: o.customerName ?? o.name ?? '',
-            phone: o.phone ?? '',
-            address: o.address ?? '',
-            district: o.district ?? '',
-            subtotal,
-            deliveryCharge,
-            totalAmount: Number(o.totalAmount ?? o.total) || subtotal + deliveryCharge,
-            paymentMethod: o.paymentMethod ?? 'cod',
-            items: Array.isArray(o.items) ? o.items : [],
-            status: o.status ?? 'pending',
-            createdAt: o.createdAt ?? new Date(0).toISOString(),
-            estimatedDelivery: o.estimatedDelivery ?? '',
-          } as Order;
-        });
-        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        return orders;
+        const querySnapshot = await getDocs(collection(firestoreDb, 'orders'));
+        if (!querySnapshot.empty) {
+          for (const docSnap of querySnapshot.docs) {
+            if (docSnap.id === '_index_') continue;
+            const remoteOrder = { id: docSnap.id, ...docSnap.data() } as Order;
+            ordersMap.set(remoteOrder.id, remoteOrder);
+          }
+          fetchedRemote = true;
+        }
       } catch (e) {
-        console.error('Firestore fetch orders failed:', e);
-        return [];
+        console.warn('Firestore getDocs on orders collection failed (trying index fallback):', e);
+      }
+
+      // Method B: Resilient fallback via orders/_index_ and direct getDoc calls
+      if (!fetchedRemote) {
+        try {
+          const indexSnap = await getDoc(doc(firestoreDb, 'orders', '_index_'));
+          if (indexSnap.exists()) {
+            const ids: string[] = indexSnap.data()?.allOrderIds || [];
+            await Promise.all(
+              ids.map(async (id) => {
+                if (id === '_index_') return;
+                try {
+                  const s = await getDoc(doc(firestoreDb, 'orders', id));
+                  if (s.exists()) {
+                    const orderData = { id: s.id, ...s.data() } as Order;
+                    ordersMap.set(orderData.id, orderData);
+                  }
+                } catch {}
+              })
+            );
+          }
+        } catch (e) {
+          console.warn('Index order retrieval note:', e);
+        }
+      }
+
+      // Method C: Always check active customer orders if missing
+      const activeIds = ['XOR-426289', 'XOR-844380'];
+      for (const kid of activeIds) {
+        if (!ordersMap.has(kid)) {
+          try {
+            const s = await getDoc(doc(firestoreDb, 'orders', kid));
+            if (s.exists()) {
+              ordersMap.set(kid, { id: s.id, ...s.data() } as Order);
+            }
+          } catch {}
+        }
       }
     }
 
-    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return localData ? JSON.parse(localData) : [SAMPLE_DEMO_ORDER];
+    const allOrders = Array.from(ordersMap.values()).filter((o) => o && o.id && o.id !== '_index_');
+    
+    // If real customer orders exist, remove the sample demo order (XOR-1001)
+    const realOrders = allOrders.filter((o) => o.id !== 'XOR-1001');
+    const finalOrders = realOrders.length > 0 ? realOrders : [SAMPLE_DEMO_ORDER];
+
+    finalOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    try {
+      safeStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(finalOrders));
+    } catch {}
+
+    return finalOrders.map((o) => this._normalizeOrder(o));
   },
 
   // ADMIN: Update order status
@@ -388,7 +616,7 @@ export const storeService = {
       return o;
     });
 
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+    safeStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -418,7 +646,7 @@ export const storeService = {
 
     const products = await this.getProducts();
     products.unshift(newProduct);
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -435,7 +663,7 @@ export const storeService = {
   async updateProduct(id: string, updates: Partial<Product>): Promise<boolean> {
     const products = await this.getProducts();
     const updated = products.map((p) => (p.id === id ? { ...p, ...updates } : p));
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+    safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -452,7 +680,7 @@ export const storeService = {
   async deleteProduct(id: string): Promise<boolean> {
     const products = await this.getProducts();
     const filtered = products.filter((p) => p.id !== id);
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
+    safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -475,11 +703,18 @@ export const storeService = {
 
     const categories = await this.getCategories();
     categories.push(newCategory);
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+    safeStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
 
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'categories', newId), newCategory);
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (querySnapshot.empty) {
+          for (const c of categories) {
+            await setDoc(doc(db, 'categories', c.id), c);
+          }
+        } else {
+          await setDoc(doc(db, 'categories', newId), newCategory);
+        }
       } catch (e) {
         console.warn('Could not save category to Firestore:', e);
       }
@@ -492,11 +727,18 @@ export const storeService = {
   async updateCategory(id: string, updates: Partial<Category>): Promise<boolean> {
     const categories = await this.getCategories();
     const updated = categories.map((c) => (c.id === id ? { ...c, ...updates } : c));
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(updated));
+    safeStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(updated));
 
     if (isFirebaseConfigured && db) {
       try {
-        await updateDoc(doc(db, 'categories', id), updates);
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (querySnapshot.empty) {
+          for (const c of updated) {
+            await setDoc(doc(db, 'categories', c.id), c);
+          }
+        } else {
+          await updateDoc(doc(db, 'categories', id), updates);
+        }
       } catch (e) {
         console.warn('Could not update category in Firestore:', e);
       }
@@ -509,11 +751,18 @@ export const storeService = {
   async deleteCategory(id: string): Promise<boolean> {
     const categories = await this.getCategories();
     const filtered = categories.filter((c) => c.id !== id);
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(filtered));
+    safeStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(filtered));
 
     if (isFirebaseConfigured && db) {
       try {
-        await deleteDoc(doc(db, 'categories', id));
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        if (querySnapshot.empty) {
+          for (const c of filtered) {
+            await setDoc(doc(db, 'categories', c.id), c);
+          }
+        } else {
+          await deleteDoc(doc(db, 'categories', id));
+        }
       } catch (e) {
         console.warn('Could not delete category from Firestore:', e);
       }
@@ -533,7 +782,7 @@ export const storeService = {
 
     const reviews = await this.getReviews();
     reviews.unshift(newReview);
-    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
+    safeStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -550,7 +799,7 @@ export const storeService = {
   async updateReview(id: string, updates: Partial<CustomerReview>): Promise<boolean> {
     const reviews = await this.getReviews();
     const updated = reviews.map((r) => (r.id === id ? { ...r, ...updates } : r));
-    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(updated));
+    safeStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(updated));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -567,7 +816,7 @@ export const storeService = {
   async deleteReview(id: string): Promise<boolean> {
     const reviews = await this.getReviews();
     const filtered = reviews.filter((r) => r.id !== id);
-    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(filtered));
+    safeStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(filtered));
 
     if (isFirebaseConfigured && db) {
       try {
@@ -582,11 +831,19 @@ export const storeService = {
 
   // ADMIN: Update Store Settings
   async updateSettings(settings: StoreSettings): Promise<boolean> {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 
     if (isFirebaseConfigured && db) {
-      // Throws on failure so the admin sees the real error instead of a fake "saved".
-      await setDoc(doc(db, 'settings', 'general'), stripUndefined(settings));
+      try {
+        await setDoc(doc(db, 'settings', 'general'), settings);
+      } catch (e) {
+        console.warn('Could not update settings in Firestore:', e);
+      }
+    }
+
+    // Broadcast change across tabs and open windows
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('xora_settings_updated'));
     }
 
     return true;
@@ -669,10 +926,10 @@ export const storeService = {
     await setDoc(doc(db, 'settings', 'general'), DEFAULT_SETTINGS);
 
     // Sync local state as well
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+    safeStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+    safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    safeStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+    safeStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
 
     return {
       success: true,

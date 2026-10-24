@@ -37,3 +37,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #962D3E;
 }
+
+/* Ensure all select and option dropdowns display high-contrast dark text on white background across desktop & mobile */
+select {
+  color: #0f172a !important;
+}
+
+select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  padding: 8px 12px;
+}

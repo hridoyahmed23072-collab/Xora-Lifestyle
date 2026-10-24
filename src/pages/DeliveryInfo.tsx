@@ -89,7 +89,7 @@ export const DeliveryInfo: React.FC = () => {
 
         </div>
 
-        {/* Free Shipping Highlight Banner */}
+        {/* Nationwide Delivery Highlight Banner */}
         <div className="bg-[#962D3E] text-white p-6 rounded-2xl shadow-md mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white/10 rounded-xl">
@@ -98,13 +98,13 @@ export const DeliveryInfo: React.FC = () => {
             <div>
               <h3 className="font-bold text-base">
                 {language === 'bn'
-                  ? `${formatPrice(settings.freeShippingMinAmount || 3000)} টাকার কেনাকাটায় ফ্রি ডেলিভারি!`
-                  : `Free Shipping on orders above ${formatPrice(settings.freeShippingMinAmount || 3000)}!`}
+                  ? 'সারা বাংলাদেশে দ্রুততম হোম ডেলিভারি!'
+                  : 'Fast Nationwide Home Delivery!'}
               </h3>
               <p className="text-xs text-white/80">
                 {language === 'bn'
-                  ? `যেকোনো পণ্যের অর্ডারে মোট মূল্য ${formatPrice(settings.freeShippingMinAmount || 3000)} বা তার বেশি হলে সারা বাংলাদেশে সম্পূর্ণ ফ্রি হোম ডেলিভারি।`
-                  : `Nationwide zero shipping fee automatically applied at checkout for orders over ${formatPrice(settings.freeShippingMinAmount || 3000)}.`}
+                  ? `ঢাকার ভেতরে ডেলিভারি চার্জ মাত্র ${formatPrice(settings.insideDhakaCharge)} এবং ঢাকার বাইরে ${formatPrice(settings.outsideDhakaCharge)}। ক্যাশ অন ডেলিভারি সুবিধা প্রযোজ্য।`
+                  : `Delivery fee is only ${formatPrice(settings.insideDhakaCharge)} inside Dhaka and ${formatPrice(settings.outsideDhakaCharge)} outside Dhaka. Cash on delivery available.`}
               </p>
             </div>
           </div>

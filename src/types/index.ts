@@ -34,6 +34,7 @@ export interface Product {
   rating: number;
   reviewsCount: number;
   createdAt: string;
+  category?: string;
 }
 
 export interface Category {
@@ -57,6 +58,13 @@ export interface CartItem {
   selectedSize?: string;
   quantity: number;
   maxStock: number;
+  // Compatibility
+  product?: {
+    id: string;
+    name: string;
+    price: number;
+    images?: string[];
+  };
 }
 
 export type DeliveryZone = 'inside_dhaka' | 'outside_dhaka';
@@ -69,10 +77,17 @@ export interface OrderItem {
   nameEn: string;
   price: number;
   image: string;
-  selectedColor?: string;
-  selectedSize?: string;
+  selectedColor?: string | null;
+  selectedSize?: string | null;
   quantity: number;
   totalPrice: number;
+  // Compatibility
+  product?: {
+    id?: string;
+    name?: string;
+    price?: number;
+    images?: string[];
+  };
 }
 
 export interface Order {
@@ -81,6 +96,7 @@ export interface Order {
   phone: string;
   address: string;
   district: string;
+  upazila?: string;
   deliveryZone: DeliveryZone;
   deliveryCharge: number;
   subtotal: number;
@@ -99,6 +115,16 @@ export interface Order {
   }[];
   createdAt: string;
   estimatedDelivery: string;
+  // Compatibility
+  customerInfo?: {
+    name: string;
+    phone: string;
+    address: string;
+    district: string;
+    upazila?: string;
+    notes?: string;
+  };
+  shippingFee?: number;
 }
 
 export interface CustomerReview {
@@ -138,5 +164,9 @@ export interface StoreSettings {
   outsideDhakaCharge: number;
   bkashNumber: string;
   nagadNumber: string;
+  // Compatibility aliases
+  shippingFeeInsideDhaka?: number;
+  shippingFeeOutsideDhaka?: number;
   freeShippingMinAmount?: number;
+  freeShippingThreshold?: number;
 }

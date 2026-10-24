@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSettings } from '../hooks/useSettings';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -9,11 +8,6 @@ export const CartPage: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
-
-  const settings = useSettings();
-  const freeShippingThreshold = settings.freeShippingMinAmount || 0;
-  const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
-  const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
   if (cart.length === 0) {
     return (

@@ -74,8 +74,8 @@ export const translations = {
     deliveryFee: 'ডেলিভারি চার্জ',
     total: 'সর্বমোট',
     proceedToCheckout: 'চেকআউট করুন',
-    freeDeliveryUnlocked: 'অভিনন্দন! আপনি ফ্রি ডেলিভারি পেয়েছেন',
-    freeDeliveryAway: 'টাকার কেনাকাটা করলে পাচ্ছেন ফ্রি ডেলিভারি!',
+    freeDeliveryUnlocked: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি',
+    freeDeliveryAway: 'ঢাকার ভেতরে ৳৮০, ঢাকার বাইরে ৳১৫০',
     remove: 'মুছে ফেলুন',
     
     // Checkout
@@ -242,8 +242,8 @@ export const translations = {
     deliveryFee: 'Delivery Fee',
     total: 'Total',
     proceedToCheckout: 'Proceed to Checkout',
-    freeDeliveryUnlocked: 'Congratulations! You qualified for Free Shipping',
-    freeDeliveryAway: 'away from Free Nationwide Delivery!',
+    freeDeliveryUnlocked: 'Nationwide Cash on Delivery Available',
+    freeDeliveryAway: '৳80 inside Dhaka, ৳150 outside Dhaka',
     remove: 'Remove',
     
     // Checkout

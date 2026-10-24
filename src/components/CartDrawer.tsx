@@ -24,10 +24,6 @@ export const CartDrawer: React.FC = () => {
 
   if (!isDrawerOpen) return null;
 
-  const freeShippingThreshold = settings.freeShippingMinAmount || 0;
-  const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
-  const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
-
   const handleCheckout = () => {
     closeDrawer();
     navigate('/checkout');

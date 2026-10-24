@@ -43,17 +43,29 @@ export const AdminOrders: React.FC = () => {
     let unsubscribe: (() => void) | undefined;
     if (isFirebaseConfigured && db) {
       try {
-        unsubscribe = onSnapshot(collection(db, 'orders'), () => {
-          storeService.getOrders().then(setOrders);
-        });
+        unsubscribe = onSnapshot(
+          collection(db, 'orders'),
+          () => {
+            storeService.getOrders().then(setOrders);
+          },
+          (err) => {
+            console.warn('onSnapshot listener permission notice (auto-polling active):', err.message);
+          }
+        );
       } catch (e) {
         console.warn('onSnapshot listener error:', e);
       }
     }
 
+    // Auto-refresh orders every 15 seconds to ensure live cross-device sync
+    const interval = setInterval(() => {
+      storeService.getOrders().then(setOrders);
+    }, 15000);
+
     return () => {
       window.removeEventListener('xora_orders_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      clearInterval(interval);
       if (unsubscribe) unsubscribe();
     };
   }, []);
@@ -81,6 +93,7 @@ export const AdminOrders: React.FC = () => {
       'Phone',
       'Address',
       'District',
+      'Upazila',
       'Delivery Zone',
       'Payment Method',
       'TrxID',
@@ -97,6 +110,7 @@ export const AdminOrders: React.FC = () => {
       `"${o.phone}"`,
       `"${o.address.replace(/"/g, '""')}"`,
       `"${o.district}"`,
+      `"${o.upazila || ''}"`,
       `"${o.deliveryZone}"`,
       `"${o.paymentMethod.toUpperCase()}"`,
       `"${o.trxId || ''}"`,
@@ -264,7 +278,9 @@ export const AdminOrders: React.FC = () => {
                       <p className="text-[11px] text-[#7A7165] tabular-nums font-medium">{o.phone}</p>
                     </td>
                     <td className="py-3.5 px-4 max-w-xs">
-                      <p className="font-semibold text-[#1E1E1E]">{o.district}</p>
+                      <p className="font-semibold text-[#1E1E1E]">
+                        {o.district}{o.upazila ? ` · ${o.upazila}` : ''}
+                      </p>
                       <p className="text-[11px] text-[#7A7165] truncate">{o.address}</p>
                     </td>
                     <td className="py-3.5 px-4">
@@ -391,7 +407,7 @@ export const AdminOrders: React.FC = () => {
                   </p>
                   <p className="text-xs text-[#1E1E1E]">{activeInvoiceOrder.address}</p>
                   <p className="font-bold text-xs text-[#962D3E] mt-0.5">
-                    {activeInvoiceOrder.district} ({activeInvoiceOrder.deliveryZone})
+                    {activeInvoiceOrder.upazila ? `${activeInvoiceOrder.upazila}, ` : ''}{activeInvoiceOrder.district} ({activeInvoiceOrder.deliveryZone})
                   </p>
                 </div>
               </div>
@@ -444,7 +460,7 @@ export const AdminOrders: React.FC = () => {
                   <div className="flex justify-between py-1 border-b border-[#F0EAE0]">
                     <span className="text-[#6B6357]">Delivery Charge:</span>
                     <span className="font-semibold tabular-nums">
-                      {activeInvoiceOrder.deliveryCharge === 0 ? 'FREE' : formatPrice(activeInvoiceOrder.deliveryCharge)}
+                      {formatPrice(activeInvoiceOrder.deliveryCharge)}
                     </span>
                   </div>
                   <div className="flex justify-between py-1.5 text-sm font-bold border-b-2 border-[#1E1E1E]">

@@ -23,13 +23,25 @@ const DEFAULT_FIREBASE_CONFIG = {
   appId: '1:714371115229:web:6cfe4c71c984c1b1cdd334',
 };
 
+const getEnv = (key: string): string => {
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.[key]) {
+      return (import.meta as any).env[key];
+    }
+    if (typeof process !== 'undefined' && process?.env?.[key]) {
+      return process.env[key] || '';
+    }
+  } catch {}
+  return '';
+};
+
 const firebaseConfig = {
-  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY || savedConfig.apiKey || DEFAULT_FIREBASE_CONFIG.apiKey).trim(),
-  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || savedConfig.authDomain || DEFAULT_FIREBASE_CONFIG.authDomain).trim(),
-  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID || savedConfig.projectId || DEFAULT_FIREBASE_CONFIG.projectId).trim(),
-  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || savedConfig.storageBucket || DEFAULT_FIREBASE_CONFIG.storageBucket).trim(),
-  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || savedConfig.messagingSenderId || DEFAULT_FIREBASE_CONFIG.messagingSenderId).trim(),
-  appId: (import.meta.env.VITE_FIREBASE_APP_ID || savedConfig.appId || DEFAULT_FIREBASE_CONFIG.appId).trim(),
+  apiKey: (getEnv('VITE_FIREBASE_API_KEY') || savedConfig.apiKey || DEFAULT_FIREBASE_CONFIG.apiKey).trim(),
+  authDomain: (getEnv('VITE_FIREBASE_AUTH_DOMAIN') || savedConfig.authDomain || DEFAULT_FIREBASE_CONFIG.authDomain).trim(),
+  projectId: (getEnv('VITE_FIREBASE_PROJECT_ID') || savedConfig.projectId || DEFAULT_FIREBASE_CONFIG.projectId).trim(),
+  storageBucket: (getEnv('VITE_FIREBASE_STORAGE_BUCKET') || savedConfig.storageBucket || DEFAULT_FIREBASE_CONFIG.storageBucket).trim(),
+  messagingSenderId: (getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || savedConfig.messagingSenderId || DEFAULT_FIREBASE_CONFIG.messagingSenderId).trim(),
+  appId: (getEnv('VITE_FIREBASE_APP_ID') || savedConfig.appId || DEFAULT_FIREBASE_CONFIG.appId).trim(),
 };
 
 // Check if critical Firebase env variables are provided
@@ -60,11 +72,11 @@ export const ADMIN_EMAILS = [
   'xoralifestyle21@gmail.com',
   'xoralifestyle21@gamil.com',
   'mdmadara999@gmail.com',
-  (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim(),
+  (getEnv('VITE_ADMIN_EMAIL') || '').toLowerCase().trim(),
 ].filter(Boolean);
 export const ADMIN_EMAIL = ADMIN_EMAILS[0];
-export const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || '';
-export const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || '';
+export const CLOUDINARY_CLOUD_NAME = getEnv('VITE_CLOUDINARY_CLOUD_NAME');
+export const CLOUDINARY_UPLOAD_PRESET = getEnv('VITE_CLOUDINARY_UPLOAD_PRESET');
 
 export function saveFirebaseConfig(config: {
   apiKey: string;

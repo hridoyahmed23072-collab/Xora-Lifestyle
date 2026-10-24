@@ -6,6 +6,13 @@ interface InvoiceProps {
 }
 
 export const Invoice: React.FC<InvoiceProps> = ({ order }) => {
+  const customerName = order.customerName || order.customerInfo?.name || 'Customer';
+  const phone = order.phone || order.customerInfo?.phone || '';
+  const address = order.address || order.customerInfo?.address || '';
+  const district = order.district || order.customerInfo?.district || '';
+  const upazila = order.upazila || order.customerInfo?.upazila || '';
+  const shippingCharge = order.deliveryCharge ?? order.shippingFee ?? 0;
+
   return (
     <div className="bg-white p-6 sm:p-8 max-w-2xl mx-auto border border-slate-200 rounded-xl shadow-sm text-slate-800 font-sans print:shadow-none print:border-none print:p-0">
       {/* Header */}
@@ -30,9 +37,13 @@ export const Invoice: React.FC<InvoiceProps> = ({ order }) => {
       <div className="grid grid-cols-2 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
         <div>
           <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">ক্রেতার তথ্য</h3>
-          <p className="text-xs sm:text-sm font-bold text-slate-800">{order.customerInfo.name}</p>
-          <p className="text-xs text-slate-600 mt-1">{order.customerInfo.phone}</p>
-          <p className="text-xs text-slate-600">{order.customerInfo.address}, {order.customerInfo.district}</p>
+          <p className="text-xs sm:text-sm font-bold text-slate-800">{customerName}</p>
+          <p className="text-xs text-slate-600 mt-1">{phone}</p>
+          <p className="text-xs text-slate-600">
+            {address}
+            {upazila ? `, ${upazila}` : ''}
+            {district ? `, ${district}` : ''}
+          </p>
         </div>
         <div className="text-right">
           <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">পেমেন্ট বিবরণ</h3>
@@ -55,14 +66,25 @@ export const Invoice: React.FC<InvoiceProps> = ({ order }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {order.items.map((item, index) => (
-              <tr key={index}>
-                <td className="py-3 font-medium text-slate-800">{item.product.name}</td>
-                <td className="py-3 text-center">{item.quantity}</td>
-                <td className="py-3 text-right">৳ {item.product.price}</td>
-                <td className="py-3 text-right font-semibold">৳ {item.product.price * item.quantity}</td>
-              </tr>
-            ))}
+            {(order.items || []).map((item, index) => {
+              const itemName = item.nameBn || item.nameEn || item.product?.name || 'Bag';
+              const itemPrice = item.price || item.product?.price || 0;
+              const lineTotal = item.totalPrice || itemPrice * item.quantity;
+
+              return (
+                <tr key={index}>
+                  <td className="py-3 font-medium text-slate-800">
+                    <div>{itemName}</div>
+                    {item.selectedColor && (
+                      <span className="text-[10px] text-slate-500 font-normal">কালার: {item.selectedColor}</span>
+                    )}
+                  </td>
+                  <td className="py-3 text-center">{item.quantity}</td>
+                  <td className="py-3 text-right">৳ {itemPrice}</td>
+                  <td className="py-3 text-right font-semibold">৳ {lineTotal}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -76,7 +98,7 @@ export const Invoice: React.FC<InvoiceProps> = ({ order }) => {
           </div>
           <div className="flex justify-between text-slate-600">
             <span>ডেলিভারি চার্জ:</span>
-            <span>৳ {order.shippingFee}</span>
+            <span>৳ {shippingCharge}</span>
           </div>
           <div className="flex justify-between text-sm sm:text-base font-bold text-rose-950 border-t border-slate-200 pt-2 mt-2">
             <span>সর্বমোট:</span>
