@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Sparkles, CheckCircle2, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import { ArrowRight, Star, Sparkles, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
 import { storeService } from '../services/storeService';
@@ -54,7 +54,7 @@ export const Home: React.FC = () => {
           <div className="max-w-2xl flex flex-col items-start gap-5">
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-rose-300 tracking-wider uppercase px-3.5 py-1.5 rounded-full bg-rose-950/40 backdrop-blur-md border border-rose-500/30">
               <Sparkles className="w-4 h-4 text-rose-400" />
-              <span>{language === 'bn' ? 'আভিজাত্যের দেশীয় রূপ' : 'Pure Bangladeshi Craftsmanship'}</span>
+              <span>{language === 'bn' ? 'প্রিমিয়াম ট্রেন্ডি কালেকশন' : 'Premium Trendy Collection'}</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
@@ -242,7 +242,7 @@ export const Home: React.FC = () => {
               </h2>
               <p className="text-sm text-slate-600 leading-relaxed">
                 {language === 'bn'
-                  ? 'আমরা সরাসরি প্রিমিয়াম ইমপোর্টেড কোয়ালিটি সুনিয়ন্ত্রিত মান পরীক্ষার মাধ্যমে সংগ্রহ করি, যাতে প্রতিটি ডিজাইনে পান আভিজাত্য ও স্থায়িত্ব।'
+                  ? 'আমরা সরাসরি প্রিমিয়াম ইমপোর্টেড কোয়ালিটি সুনিয়ন্ত্রিত মান পরীক্ষার মাধ্যমে সংগ্রহ করি, যাতে প্রতিটি ডিজাইনে পান আভিজাত্য ও স্থায়িত্ব।'
                   : 'Modern design with premium finishing imported directly for your everyday lifestyle.'}
               </p>
               <div className="pt-2">
@@ -277,53 +277,55 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 5. Customer Reviews */}
-      <section className="py-14 md:py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="text-xs font-bold text-rose-900 tracking-widest uppercase block mb-1">
-              {t('customerReviews')}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              {t('reviewsSub')}
-            </h2>
-          </div>
+      {reviews.length > 0 && (
+        <section className="py-14 md:py-20 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <span className="text-xs font-bold text-rose-900 tracking-widest uppercase block mb-1">
+                {t('customerReviews')}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                {t('reviewsSub')}
+              </h2>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.map((rev) => (
-              <div
-                key={rev.id}
-                className="bg-white p-7 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-md transition"
-              >
-                <div>
-                  <div className="flex items-center gap-1 text-amber-400 mb-4">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-current" />
-                    ))}
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
-                    "{language === 'bn' ? rev.commentBn : rev.commentEn}"
-                  </p>
-                </div>
-
-                <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {reviews.map((rev) => (
+                <div
+                  key={rev.id}
+                  className="bg-white p-7 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-md transition"
+                >
                   <div>
-                    <p className="text-xs font-bold text-slate-900">
-                      {language === 'bn' ? rev.customerNameBn : rev.customerNameEn}
-                    </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      {language === 'bn' ? rev.districtBn : rev.districtEn}
+                    <div className="flex items-center gap-1 text-amber-400 mb-4">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-current" />
+                      ))}
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+                      "{language === 'bn' ? rev.commentBn : rev.commentEn}"
                     </p>
                   </div>
-                  <span className="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-md border border-emerald-200/60">
-                    {t('verifiedBuyer')}
-                  </span>
+
+                  <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">
+                        {language === 'bn' ? rev.customerNameBn : rev.customerNameEn}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {language === 'bn' ? rev.districtBn : rev.districtEn}
+                      </p>
+                    </div>
+                    <span className="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-md border border-emerald-200/60">
+                      {t('verifiedBuyer')}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
     </div>
   );
