@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { CheckCircle, Package, Home, Printer, MessageCircle } from 'lucide-react';
 import { Order } from '../types';
@@ -9,7 +9,6 @@ export const OrderSuccess: React.FC = () => {
   const location = useLocation();
   const settings = useSettings();
   const order = location.state?.order as Order | undefined;
-  const invoiceRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
     window.print();
@@ -24,7 +23,7 @@ export const OrderSuccess: React.FC = () => {
     <div className="min-h-screen bg-rose-50/30 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto space-y-8">
         
-        {/* Top Notification Card */}
+        {/* Banner */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-rose-100 text-center print:hidden">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-10 h-10" />
@@ -36,7 +35,6 @@ export const OrderSuccess: React.FC = () => {
             </p>
           )}
 
-          {/* Action Buttons */}
           <div className="flex flex-wrap justify-center gap-3 mt-6">
             <a
               href={whatsappUrl}
@@ -45,7 +43,7 @@ export const OrderSuccess: React.FC = () => {
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium text-sm rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
             >
               <MessageCircle className="w-4 h-4" />
-              হোয়াটসঅ্যাপে যোগাযোগ
+              হোয়াটসঅ্যাপে কথা বলুন
             </a>
 
             {order && (
@@ -76,14 +74,10 @@ export const OrderSuccess: React.FC = () => {
           </div>
         </div>
 
-        {/* Invoice Area */}
-        {order ? (
-          <div ref={invoiceRef}>
+        {/* Invoice */}
+        {order && (
+          <div>
             <Invoice order={order} />
-          </div>
-        ) : (
-          <div className="bg-white p-6 rounded-2xl text-center border border-rose-100 print:hidden">
-            <p className="text-sm text-slate-600">অর্ডারের রসিদ দেখতে 'অর্ডার ট্র্যাক করুন' বাটনে ক্লিক করে আপনার অর্ডার আইডি সার্চ করুন।</p>
           </div>
         )}
 
