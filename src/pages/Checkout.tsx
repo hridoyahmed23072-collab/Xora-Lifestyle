@@ -8,9 +8,9 @@ import { useSettings } from '../hooks/useSettings';
 import { BANGLADESH_DISTRICTS } from '../lib/constants';
 
 export const Checkout: React.FC = () => {
-  const { cart, totalAmount, clearCart } = useCart();
-  const { formatPrice } = useLanguage();
-  const settings = useSettings();
+  const { cart = [], totalAmount = 0, clearCart } = useCart();
+  const { formatPrice = (v: number) => `৳ ${v}` } = useLanguage();
+  const settings = useSettings() || {};
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -25,15 +25,15 @@ export const Checkout: React.FC = () => {
     paymentMethod: 'cod' as 'cod' | 'bkash' | 'nagad',
   });
 
-  if (cart.length === 0) {
+  if (!cart || cart.length === 0) {
     return (
       <div className="min-h-screen bg-rose-50/20 py-16 px-4 text-center">
         <div className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-rose-100">
           <ShoppingBag className="w-16 h-16 text-rose-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-800 mb-2">আপনার কার্ট খালি!</h2>
-          <p className="text-sm text-slate-600 mb-6">চেকআউট করতে প্রথমে ব্যাগ কার্টে যোগ করুন।</p>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Apnar cart khali!</h2>
+          <p className="text-sm text-slate-600 mb-6">Checkout korte prothome bag cart-e jog korun.</p>
           <Link to="/shop" className="inline-block px-6 py-3 bg-rose-950 text-amber-300 font-semibold rounded-xl text-sm">
-            শপে যান
+            Shop-e jaan
           </Link>
         </div>
       </div>
@@ -42,17 +42,19 @@ export const Checkout: React.FC = () => {
 
   const shippingFee =
     formData.district === 'Dhaka'
-      ? settings.shippingFeeInsideDhaka ?? 70
-      : settings.shippingFeeOutsideDhaka ?? 130;
+      ? (settings.shippingFeeInsideDhaka ?? 70)
+      : (settings.shippingFeeOutsideDhaka ?? 130);
 
   const freeDeliveryThreshold = settings.freeShippingThreshold ?? 2000;
   const finalShippingFee = totalAmount >= freeDeliveryThreshold ? 0 : shippingFee;
   const grandTotal = totalAmount + finalShippingFee;
 
+  const districtsList = BANGLADESH_DISTRICTS || ['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh'];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.phone.trim() || !formData.address.trim()) {
-      setError('অনুগ্রহ করে নাম, ফোন নম্বর ও সম্পূর্ণ ঠিকানা দিন।');
+      setError('Anugraho kore naam, phone nombor o sompurno thikana din.');
       return;
     }
 
@@ -84,11 +86,11 @@ export const Checkout: React.FC = () => {
         clearCart();
         navigate('/order-success', { state: { order: createdOrder } });
       } else {
-        setError('অর্ডারটি সেভ করা যায়নি। আবার চেষ্টা করুন।');
+        setError('Order-ti save kora jayni. Abar chesta korun.');
       }
     } catch (err) {
       console.error('Checkout Error:', err);
-      setError('অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      setError('Order somponno korte somosha hoyeche. Abar chesta korun.');
     } finally {
       setLoading(false);
     }
@@ -98,21 +100,21 @@ export const Checkout: React.FC = () => {
     <div className="min-h-screen bg-rose-50/20 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <Link to="/cart" className="inline-flex items-center gap-2 text-xs font-semibold text-rose-950 mb-6 hover:text-rose-700">
-          <ArrowLeft className="w-4 h-4" /> কার্টে ফিরে যান
+          <ArrowLeft className="w-4 h-4" /> Cart-e phire jaan
         </Link>
 
-        <h1 className="text-2xl font-serif font-bold text-rose-950 mb-8">চেকআউট - অর্ডার ফর্ম</h1>
+        <h1 className="text-2xl font-serif font-bold text-rose-950 mb-8">Checkout - Order Form</h1>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-rose-100 space-y-5">
-            <h2 className="text-lg font-bold text-slate-800 border-b border-rose-100 pb-3">ডেলিভারি তথ্য</h2>
+            <h2 className="text-lg font-bold text-slate-800 border-b border-rose-100 pb-3">Delivery Tottho</h2>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">আপনার নাম *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Apnar Naam *</label>
               <input
                 type="text"
                 required
-                placeholder="আপনার পূর্ণ নাম"
+                placeholder="Apnar purno naam"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-4 py-2.5 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-900 outline-none text-sm"
@@ -120,7 +122,7 @@ export const Checkout: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">মোবাইল নম্বর *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Nombor *</label>
               <input
                 type="tel"
                 required
@@ -133,32 +135,32 @@ export const Checkout: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">জেলা *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Zela *</label>
                 <select
                   value={formData.district}
                   onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                   className="w-full px-4 py-2.5 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-900 outline-none text-sm bg-white"
                 >
-                  {BANGLADESH_DISTRICTS.map((d) => (
+                  {districtsList.map((d) => (
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">ডেলিভারি চার্জ</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Delivery Charge</label>
                 <div className="px-4 py-2.5 border border-slate-100 bg-slate-50 rounded-xl text-sm font-semibold text-rose-950">
-                  {finalShippingFee === 0 ? 'ফ্রি ডেলিভারি!' : formatPrice(finalShippingFee)}
+                  {finalShippingFee === 0 ? 'Free Delivery!' : formatPrice(finalShippingFee)}
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">পূর্ণাঙ্গ ঠিকানা *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Purnango Thikana *</label>
               <textarea
                 required
                 rows={3}
-                placeholder="বাড়ি/হোল্ডিং নম্বর, রোড, এলাকা/থানা"
+                placeholder="Bari/holding nombor, road, elaka/thana"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full px-4 py-2.5 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-900 outline-none text-sm resize-none"
@@ -166,10 +168,10 @@ export const Checkout: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">বিশেষ কোনো নির্দেশ (ঐচ্ছিক)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Special Instruction (Oichhik)</label>
               <input
                 type="text"
-                placeholder="যেমন: বিকেলে ডেলিভারি দিন"
+                placeholder="Jemon: Bikel-e delivery din"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full px-4 py-2.5 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-900 outline-none text-sm"
@@ -177,7 +179,7 @@ export const Checkout: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-rose-100">
-              <label className="block text-xs font-bold text-slate-700 mb-3">পেমেন্ট পদ্ধতি পছন্দ করুন</label>
+              <label className="block text-xs font-bold text-slate-700 mb-3">Payment Method Posondo Korun</label>
               <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
@@ -188,7 +190,7 @@ export const Checkout: React.FC = () => {
                       : 'border-slate-200 hover:border-rose-300 text-slate-700'
                   }`}
                 >
-                  ক্যাশ অন ডেলিভারি
+                  Cash on Delivery
                 </button>
                 <button
                   type="button"
@@ -199,7 +201,7 @@ export const Checkout: React.FC = () => {
                       : 'border-slate-200 hover:border-pink-300 text-slate-700'
                   }`}
                 >
-                  বিকাশ (bKash)
+                  bKash
                 </button>
                 <button
                   type="button"
@@ -210,7 +212,7 @@ export const Checkout: React.FC = () => {
                       : 'border-slate-200 hover:border-orange-300 text-slate-700'
                   }`}
                 >
-                  নগদ (Nagad)
+                  Nagad
                 </button>
               </div>
             </div>
@@ -225,7 +227,7 @@ export const Checkout: React.FC = () => {
 
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-rose-100 space-y-4">
-              <h2 className="text-lg font-bold text-slate-800 border-b border-rose-100 pb-3">অর্ডার সামারি</h2>
+              <h2 className="text-lg font-bold text-slate-800 border-b border-rose-100 pb-3">Order Summary</h2>
 
               <div className="max-h-60 overflow-y-auto divide-y divide-rose-50 pr-1">
                 {cart.map((item) => (
@@ -244,17 +246,17 @@ export const Checkout: React.FC = () => {
 
               <div className="border-t border-rose-100 pt-3 space-y-2 text-xs text-slate-600">
                 <div className="flex justify-between">
-                  <span>পণ্যের মোট দাম:</span>
+                  <span>Ponyer mot dam:</span>
                   <span className="font-semibold text-slate-800">{formatPrice(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>ডেলিভারি চার্জ:</span>
+                  <span>Delivery charge:</span>
                   <span className="font-semibold text-slate-800">
-                    {finalShippingFee === 0 ? 'ফ্রি!' : formatPrice(finalShippingFee)}
+                    {finalShippingFee === 0 ? 'Free!' : formatPrice(finalShippingFee)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-rose-950 border-t border-rose-100 pt-2 text-base">
-                  <span>সর্বমোট:</span>
+                  <span>Sorbomot:</span>
                   <span>{formatPrice(grandTotal)}</span>
                 </div>
               </div>
@@ -264,16 +266,16 @@ export const Checkout: React.FC = () => {
                 disabled={loading}
                 className="w-full py-3.5 bg-rose-950 text-amber-300 font-bold rounded-xl hover:bg-rose-900 transition-colors shadow-md text-sm disabled:opacity-50 mt-4"
               >
-                {loading ? 'অর্ডার প্রসেস হচ্ছে...' : 'অর্ডার কনফার্ম করুন'}
+                {loading ? 'Order process hocche...' : 'Order Confirm Korun'}
               </button>
             </div>
 
             <div className="bg-rose-900/10 p-4 rounded-xl border border-rose-200/50 text-xs text-rose-950 space-y-2">
               <p className="flex items-center gap-2 font-semibold">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" /> ১০০% নিরাপদ কেনাকাটা
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> 100% Nirapod Kenakata
               </p>
               <p className="flex items-center gap-2 font-semibold">
-                <Truck className="w-4 h-4 text-amber-600" /> ক্যাশ অন ডেলিভারি সুবিধা
+                <Truck className="w-4 h-4 text-amber-600" /> Cash on Delivery subidha
               </p>
             </div>
           </div>
