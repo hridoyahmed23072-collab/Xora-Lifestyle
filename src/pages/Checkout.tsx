@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Truck, ShieldCheck, ArrowRight, CreditCard } from 'lucide-react';
+import { ShoppingBag, Truck, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export const Checkout: React.FC = () => {
   const { cart, totalAmount, clearCart } = useCart();
@@ -14,13 +14,11 @@ export const Checkout: React.FC = () => {
     phone: '',
     address: '',
     deliveryArea: 'inside', // 'inside' = 80, 'outside' = 150
-    paymentMethod: 'cod', // 'cod', 'bkash', 'nagad'
-    notes: ''
+    paymentMethod: 'cod',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Delivery calculation based on your current rates (80 Tk / 150 Tk)
   const deliveryFee = formData.deliveryArea === 'inside' ? 80 : 150;
   const grandTotal = totalAmount + deliveryFee;
 
@@ -72,9 +70,8 @@ export const Checkout: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Form Column */}
+        {/* Form Section */}
         <form onSubmit={handleSubmit} className="lg:col-span-7 flex flex-col gap-5">
-          {/* Section 1: Customer & Shipping Details */}
           <div className="bg-white p-5 rounded-2xl border border-[#E5DDD0] shadow-xs flex flex-col gap-3.5">
             <div className="flex items-center gap-2 pb-2 border-b border-[#F0EAE1]">
               <span className="w-5 h-5 rounded-full bg-[#962D3E] text-white text-[11px] font-bold flex items-center justify-center">1</span>
@@ -125,7 +122,6 @@ export const Checkout: React.FC = () => {
               />
             </div>
 
-            {/* Delivery Area Selection */}
             <div>
               <label className="block text-[11px] font-semibold mb-1.5 text-[#2D2A26]">
                 {language === 'bn' ? 'ডেলিভারি এলাকা ও চার্জ *' : 'Delivery Area & Fee *'}
@@ -180,7 +176,6 @@ export const Checkout: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: Payment Method */}
           <div className="bg-white p-5 rounded-2xl border border-[#E5DDD0] shadow-xs flex flex-col gap-3">
             <div className="flex items-center gap-2 pb-2 border-b border-[#F0EAE1]">
               <span className="w-5 h-5 rounded-full bg-[#962D3E] text-white text-[11px] font-bold flex items-center justify-center">2</span>
@@ -228,7 +223,7 @@ export const Checkout: React.FC = () => {
           </div>
         </form>
 
-        {/* Right Summary Column */}
+        {/* Summary Section */}
         <div className="lg:col-span-5 sticky top-20">
           <div className="bg-white border border-[#E5DDD0] p-5 rounded-2xl shadow-xs">
             <h3 className="text-xs font-bold pb-3 border-b border-[#F0EAE1] text-[#1E1E1E] uppercase tracking-wider">
