@@ -34,8 +34,8 @@ export const Home: React.FC = () => {
     return true;
   });
 
-  // Cloudinary Direct Image URL
-  const heroBgImage = "https://res.cloudinary.com/utod2jrs/image/upload/v1792817579/images.jpg";
+  // Apnar notun HD Cloudinary Image URL
+  const heroBgImage = "https://res.cloudinary.com/utod2jrs/image/upload/v1792817996/360_F_218404814_qrf76E5CfJ1WdTGE7qsiahYPNuqMKML1.jpg";
 
   return (
     <div className="flex flex-col min-h-screen">
