@@ -34,8 +34,8 @@ export const Home: React.FC = () => {
     return true;
   });
 
-  // Hero Background Image URL (আপনার পছন্দের নতুন ছবিটি এখানে সেট করা হলো)
-  const heroBgImage = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=2000";
+  // আপনার দেওয়া নির্দিষ্ট ছবির আসল লিংক
+  const heroBgImage = "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&q=80&w=2000";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -47,7 +47,7 @@ export const Home: React.FC = () => {
           <img 
             src={heroBgImage} 
             alt="Hero Background" 
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-top"
           />
           {/* Dark Overlay for Text Readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40 md:to-transparent" />
