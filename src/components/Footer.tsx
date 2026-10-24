@@ -64,12 +64,17 @@ export const Footer: React.FC = () => {
                 Xora Lifestyle
               </span>
               <span className="text-[11px] text-[#A69E93] tracking-widest uppercase mt-0.5">
-                {language === 'bn' ? 'জোড়া লাইফস্টাইল - বাংলাদেশ' : 'Handcrafted Heritage Bangladesh'}
+                {language === 'bn' ? 'জোড়া লাইফস্টাইল - বাংলাদেশ' : 'Handcrafted Heritage Bangladesh'}
               </span>
             </Link>
+            
+            {/* Custom Text Section */}
             <p className="text-xs leading-relaxed text-[#A69E93] max-w-sm">
-              {t('footerAboutText')}
+              {language === 'bn'
+                ? 'সাথে থাকার জন্যে ধন্যবাদ, যেকোনো সমস্যা সমাধানের জন্যে আমাদেরকে জানান।'
+                : 'Thank you for being with us. Please let us know if you need help with any issue.'}
             </p>
+
             <div className="flex items-center gap-3 pt-2">
               <a
                 href={settings.facebookUrl}
@@ -102,7 +107,7 @@ export const Footer: React.FC = () => {
               <Link to="/shop?category=tote-bags" className="hover:text-white transition-colors">{language === 'bn' ? 'টোট ব্যাগ' : 'Tote Bags'}</Link>
               <Link to="/shop?category=backpacks" className="hover:text-white transition-colors">{language === 'bn' ? 'ব্যাকপ্যাক' : 'Backpacks'}</Link>
               <Link to="/shop?category=shoulder-bags" className="hover:text-white transition-colors">{language === 'bn' ? 'শোল্ডার ব্যাগ' : 'Shoulder Bags'}</Link>
-              <Link to="/shop?category=clutch-wallets" className="hover:text-white transition-colors">{language === 'bn' ? 'ক্লাচ ও ওয়ালেট' : 'Clutch & Wallets'}</Link>
+              <Link to="/shop?category=clutch-wallets" className="hover:text-white transition-colors">{language === 'bn' ? 'ক্লাচ ও ওয়ালেট' : 'Clutch & Wallets'}</Link>
               <Link to="/shop?category=travel-bags" className="hover:text-white transition-colors">{language === 'bn' ? 'ট্রাভেল ব্যাগ' : 'Travel Bags'}</Link>
             </nav>
           </div>
