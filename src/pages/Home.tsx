@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Truck, RefreshCw, Star, ShoppingBag, ChevronRight, Sparkles } from 'lucide-react';
-import { categories, sampleProducts, sampleReviews } from '../lib/constants';
+import { categories, sampleReviews } from '../lib/constants';
 import ProductCard from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
 import { getProducts, getReviews } from '../services/storeService';
@@ -34,25 +34,22 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Background Hero Image URL
+  // Hero Background Image URL
   const heroBgImage = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=2000";
 
   return (
     <div className="space-y-16 pb-16">
-      {/* Hero Section - Full Width Background with Dark Overlay */}
+      {/* Hero Section */}
       <section className="relative min-h-[580px] md:min-h-[640px] flex items-center bg-gray-900 text-white overflow-hidden">
-        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
             src={heroBgImage} 
             alt="Hero Background" 
             className="w-full h-full object-cover object-center"
           />
-          {/* Dark Overlay for Text Readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40 md:to-transparent" />
         </div>
 
-        {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
           <div className="max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-medium text-amber-300">
@@ -85,7 +82,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Trust Badges */}
             <div className="pt-8 border-t border-white/15 grid grid-cols-3 gap-3 text-xs sm:text-sm text-gray-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -104,7 +100,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* Categories */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-8">
           <div>
@@ -175,7 +171,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* Banner / Value Proposition */}
+      {/* Brand Message Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 sm:p-12 text-center max-w-3xl mx-auto space-y-4">
           <span className="inline-block p-3 bg-rose-100 text-rose-700 rounded-2xl">
@@ -184,7 +180,7 @@ export default function Home() {
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {language === 'bn' ? 'চীনের প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগ এখন বাংলাদেশে' : 'China Premium Quality Trendy Bags Now in Bangladesh'}
           </h2>
-          <p className="text-gray-650 text-sm sm:text-base leading-relaxed">
+          <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
             {language === 'bn' 
               ? 'আমরা সরাসরি চায়না থেকে প্রিমিয়াম কোয়ালিটির ব্যাগের কালেকশন ইমপোর্ট করে আপনার কাছে পৌঁছে দিই। প্রতিটি ব্যাগের আধুনিক ডিজাইন ও প্রিমিয়াম ফিনিশিং।' 
               : 'We import premium quality bag collections directly from China and deliver to your doorstep. Modern design with premium finishing.'}
