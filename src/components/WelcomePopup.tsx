@@ -5,34 +5,41 @@ import { useLanguage } from '../context/LanguageContext';
 
 export const WelcomePopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { language } = useLanguage();
 
   useEffect(() => {
-    // Check if user has already seen the popup in this session
     const hasSeenWelcome = sessionStorage.getItem('xora_welcomed');
     if (!hasSeenWelcome) {
-      // Show popup after 1 second of loading the site
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 1000);
+        requestAnimationFrame(() => setIsAnimating(true));
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, []);
 
   const handleClose = () => {
-    setIsOpen(false);
-    sessionStorage.setItem('xora_welcomed', 'true');
+    setIsAnimating(false);
+    setTimeout(() => {
+      setIsOpen(false);
+      sessionStorage.setItem('xora_welcomed', 'true');
+    }, 300);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="relative w-full max-w-md bg-[#151c18] border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl text-center overflow-hidden">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}>
+      <div 
+        className={`relative w-full max-w-md bg-[#151c18] border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl text-center overflow-hidden transform transition-all duration-300 ease-out ${
+          isAnimating ? 'scale-100 translate-y-0' : 'scale-90 translate-y-4'
+        }`}
+      >
         
         {/* Glowing Background Effect */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
         {/* Close Button */}
         <button
@@ -65,7 +72,7 @@ export const WelcomePopup: React.FC = () => {
           <Link
             to="/shop"
             onClick={handleClose}
-            className="flex-1 py-3 px-6 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+            className="flex-1 py-3 px-6 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
           >
             <span>{language === 'bn' ? 'শপিং শুরু করুন' : 'Start Shopping'}</span>
             <ArrowRight className="w-4 h-4" />
