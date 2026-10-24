@@ -14,13 +14,22 @@ const getSavedFirebaseConfig = () => {
 
 const savedConfig = getSavedFirebaseConfig();
 
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCe0-fEWu2j_8soF_ibl865m5zmEAi-CyM',
+  authDomain: 'xora-lifestyle.firebaseapp.com',
+  projectId: 'xora-lifestyle',
+  storageBucket: 'xora-lifestyle.firebasestorage.app',
+  messagingSenderId: '714371115229',
+  appId: '1:714371115229:web:6cfe4c71c984c1b1cdd334',
+};
+
 const firebaseConfig = {
-  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY || savedConfig.apiKey || '').trim(),
-  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || savedConfig.authDomain || '').trim(),
-  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID || savedConfig.projectId || '').trim(),
-  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || savedConfig.storageBucket || '').trim(),
-  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || savedConfig.messagingSenderId || '').trim(),
-  appId: (import.meta.env.VITE_FIREBASE_APP_ID || savedConfig.appId || '').trim(),
+  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY || savedConfig.apiKey || DEFAULT_FIREBASE_CONFIG.apiKey).trim(),
+  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || savedConfig.authDomain || DEFAULT_FIREBASE_CONFIG.authDomain).trim(),
+  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID || savedConfig.projectId || DEFAULT_FIREBASE_CONFIG.projectId).trim(),
+  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || savedConfig.storageBucket || DEFAULT_FIREBASE_CONFIG.storageBucket).trim(),
+  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || savedConfig.messagingSenderId || DEFAULT_FIREBASE_CONFIG.messagingSenderId).trim(),
+  appId: (import.meta.env.VITE_FIREBASE_APP_ID || savedConfig.appId || DEFAULT_FIREBASE_CONFIG.appId).trim(),
 };
 
 // Check if critical Firebase env variables are provided

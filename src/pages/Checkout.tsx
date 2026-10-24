@@ -146,8 +146,8 @@ export const Checkout: React.FC = () => {
         nameEn: i.nameEn,
         price: i.price,
         image: i.image,
-        selectedColor: i.selectedColor,
-        selectedSize: i.selectedSize,
+        selectedColor: i.selectedColor || null,
+        selectedSize: i.selectedSize || null,
         quantity: i.quantity,
         totalPrice: i.price * i.quantity,
       }));
