@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Truck, RefreshCw, Star, ShoppingBag, ChevronRight, Sparkles } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Truck, RefreshCw, Star, ShoppingBag, Sparkles } from 'lucide-react';
 import { categories, sampleReviews } from '../lib/constants';
 import ProductCard from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
@@ -34,7 +34,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Hero Background Image URL
   const heroBgImage = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=2000";
 
   return (
@@ -113,7 +112,7 @@ export default function Home() {
           </div>
           <Link to="/shop" className="text-rose-700 hover:text-rose-800 text-sm font-semibold flex items-center gap-1">
             <span>{language === 'bn' ? 'সবগুলো দেখুন' : 'View All'}</span>
-            <ChevronRight className="w-4 h-4" />
+            <span className="text-lg">→</span>
           </Link>
         </div>
 
@@ -152,7 +151,7 @@ export default function Home() {
           </div>
           <Link to="/shop" className="text-rose-700 hover:text-rose-800 text-sm font-semibold flex items-center gap-1">
             <span>{language === 'bn' ? 'সব ব্যাগ দেখুন' : 'View All Bags'}</span>
-            <ChevronRight className="w-4 h-4" />
+            <span className="text-lg">→</span>
           </Link>
         </div>
 
