@@ -187,7 +187,7 @@ export const translations = {
     navCart: 'Cart',
     navTrackOrder: 'Track Order',
     navAbout: 'About Us',
-    navContact: 'Contact',
+    navContact: 'Contact Us',
     navReturns: 'Return Policy',
     navDelivery: 'Delivery Info',
     navCollection: 'Collection',

@@ -89,7 +89,7 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Zone 2: Navigation Links (Clean text links with hover underline) */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#4A453F]">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8 text-sm font-medium text-[#4A453F]">
             <Link
               to="/"
               className={`hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 ${
@@ -137,6 +137,14 @@ export const Header: React.FC = () => {
               }`}
             >
               {t('navAbout')}
+            </Link>
+            <Link
+              to="/contact"
+              className={`hover:text-[#962D3E] transition-colors pb-0.5 border-b-2 ${
+                location.pathname === '/contact' ? 'border-[#962D3E] text-[#962D3E] font-semibold' : 'border-transparent'
+              }`}
+            >
+              {t('navContact')}
             </Link>
           </nav>
 
