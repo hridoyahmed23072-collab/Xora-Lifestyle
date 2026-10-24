@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Header } from './components/Header';
@@ -10,7 +11,7 @@ import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { CartDrawer } from './components/CartDrawer';
 import { FloatingContactButtons } from './components/FloatingContactButtons';
-import { WelcomePopup } from './components/WelcomePopup'; // <--- Welcome Popup Import
+import { WelcomePopup } from './components/WelcomePopup';
 
 // Customer Pages
 import { Home } from './pages/Home';
@@ -36,7 +37,7 @@ import { AdminOrders } from './admin/AdminOrders';
 import { AdminReviews } from './admin/AdminReviews';
 import { AdminSettings } from './admin/AdminSettings';
 
-// Toast Notification component for Add to Cart feedback
+// Cart Toast Notification
 const CartNotificationToast: React.FC = () => {
   const { addedToastMessage, dismissToast } = useCart();
   const { language } = useLanguage();
@@ -63,35 +64,37 @@ const CartNotificationToast: React.FC = () => {
 
 function AppContent() {
   const location = useLocation();
+  const { theme } = useTheme(); 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   if (isAdminRoute) {
     return (
       <ErrorBoundary>
-      <Routes>
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="categories" element={<AdminCategories />} />
-          <Route path="reviews" element={<AdminReviews />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
-      </Routes>
+        <Routes>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+        </Routes>
       </ErrorBoundary>
     );
   }
 
+  const isDark = theme === 'dark';
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#0c100e] text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
-      {/* 1. Announcement Bar */}
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
+      isDark 
+        ? 'bg-[#0c100e] text-slate-100 selection:bg-amber-500 selection:text-slate-950' 
+        : 'bg-[#FAF7F2] text-[#1E1E1E] selection:bg-[#962D3E] selection:text-white'
+    }`}>
       <AnnouncementBar />
-
-      {/* 2. Sticky Header */}
       <Header />
-
-      {/* 3. Main Viewport Content */}
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -108,23 +111,11 @@ function AppContent() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-
-      {/* 4. Footer */}
       <Footer />
-
-      {/* 5. Mobile Bottom Navigation */}
       <MobileBottomNav />
-
-      {/* 6. Slide-Over Cart Drawer */}
       <CartDrawer />
-
-      {/* 7. Floating WhatsApp & Messenger Quick Chat Buttons */}
       <FloatingContactButtons />
-
-      {/* 8. Cart Item Added Toast */}
       <CartNotificationToast />
-
-      {/* 9. Welcome Greeting Popup Modal */}
       <WelcomePopup />
     </div>
   );
@@ -134,11 +125,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <LanguageProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );
