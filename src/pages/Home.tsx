@@ -1,233 +1,359 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Truck, RefreshCw, Star, ShoppingBag, Sparkles } from 'lucide-react';
-import { categories, sampleReviews } from '../lib/constants';
-import ProductCard from '../components/ProductCard';
+import { ArrowRight, Star, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ProductCard } from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
-import { getProducts, getReviews } from '../services/storeService';
-import { Product, Review } from '../types';
+import { storeService } from '../services/storeService';
+import { Category, CustomerReview, Product } from '../types';
 
-export default function Home() {
-  const { t, language } = useLanguage();
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
+export const Home: React.FC = () => {
+  const { language, t } = useLanguage();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [reviews, setReviews] = useState<CustomerReview[]>([]);
+  const [activeTab, setActiveTab] = useState<'featured' | 'new' | 'bestseller'>('featured');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productsData, reviewsData] = await Promise.all([
-          getProducts(),
-          getReviews()
-        ]);
-        
-        const featured = productsData.filter(p => p.isFeatured || p.isNew);
-        setFeaturedProducts(featured.length > 0 ? featured.slice(0, 8) : productsData.slice(0, 8));
-        setReviews(reviewsData.length > 0 ? reviewsData.slice(0, 3) : sampleReviews);
-      } catch (error) {
-        console.error('Error fetching home page data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    Promise.all([
+      storeService.getProducts(),
+      storeService.getCategories(),
+      storeService.getReviews(),
+    ]).then(([prodData, catData, revData]) => {
+      setProducts(prodData);
+      setCategories(catData);
+      setReviews(revData);
+      setLoading(false);
+    });
   }, []);
 
+  const filteredProducts = products.filter((p) => {
+    if (activeTab === 'featured') return p.isFeatured;
+    if (activeTab === 'new') return p.isNew;
+    if (activeTab === 'bestseller') return p.isBestSeller;
+    return true;
+  });
+
+  // Hero Background Image URL
   const heroBgImage = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=2000";
 
   return (
-    <div className="space-y-16 pb-16">
-      {/* Hero Section */}
-      <section className="relative min-h-[580px] md:min-h-[640px] flex items-center bg-gray-900 text-white overflow-hidden">
+    <div className="flex flex-col min-h-screen">
+      
+      {/* 1. Hero Campaign Section - Full Width Background with Dark Overlay */}
+      <section className="relative min-h-[580px] md:min-h-[640px] flex items-center bg-gray-900 text-white overflow-hidden border-b border-[#E8E1D5]">
+        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
             src={heroBgImage} 
             alt="Hero Background" 
             className="w-full h-full object-cover object-center"
           />
+          {/* Dark Overlay for Text Readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40 md:to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-          <div className="max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-medium text-amber-300">
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full">
+          <div className="max-w-2xl flex flex-col items-start gap-4 md:gap-6">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-amber-300 tracking-wider uppercase px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>{t('heroSubtag')}</span>
+              <span>{language === 'bn' ? 'আভিজাত্যের দেশীয় রূপ' : 'Pure Bangladeshi Craftsmanship'}</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              {t('heroTitle')}
+            <h1 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15] text-balance">
+              {t('heroHeadline')}
             </h1>
 
-            <p className="text-base sm:text-lg text-gray-200 leading-relaxed max-w-xl">
-              {t('heroDesc')}
+            <p className="text-sm sm:text-base md:text-lg text-gray-200 leading-relaxed max-w-xl">
+              {t('heroSub')}
             </p>
 
-            <div className="pt-2 flex flex-wrap gap-4 items-center">
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 to="/shop"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-rose-700 hover:bg-rose-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-rose-900/30 transition duration-300 transform hover:-translate-y-0.5"
+                className="px-6 py-3.5 bg-[#962D3E] hover:bg-[#7D2232] text-white text-sm font-semibold rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2"
               >
-                <span>{t('shopCollection')}</span>
-                <ArrowRight className="w-5 h-5" />
+                <span>{t('heroCta')}</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
 
               <Link
                 to="/about"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium rounded-xl transition duration-300"
+                className="px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-sm font-semibold rounded-xl border border-white/30 transition-all"
               >
-                <span>{t('aboutUs')}</span>
+                {t('heroSecondary')}
               </Link>
             </div>
 
-            <div className="pt-8 border-t border-white/15 grid grid-cols-3 gap-3 text-xs sm:text-sm text-gray-300">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{t('codAvailable')}</span>
+            {/* Micro Trust Points */}
+            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-300 pt-3 border-t border-white/15 w-full mt-2">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>{language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery'}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{t('fastDelivery')}</span>
+              <span aria-hidden="true" className="text-gray-500">·</span>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                <span>{language === 'bn' ? '৬৪ জেলায় হোম ডেলিভারি' : '64 Districts Delivery'}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>{t('easyReturn')}</span>
+              <span aria-hidden="true" className="text-gray-500">·</span>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                <span>{language === 'bn' ? '৭ দিনের সহজ রিটার্ন' : '7 Days Easy Return'}</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {language === 'bn' ? 'ক্যাটাগরি সমূহ' : 'Shop by Category'}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {language === 'bn' ? 'আপনার পছন্দের ব্যাগ ক্যাটাগরি বেছে নিন' : 'Find the perfect bag for any occasion'}
-            </p>
-          </div>
-          <Link to="/shop" className="text-rose-700 hover:text-rose-800 text-sm font-semibold flex items-center gap-1">
-            <span>{language === 'bn' ? 'সবগুলো দেখুন' : 'View All'}</span>
-            <span className="text-lg">→</span>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/shop?category=${cat.id}`}
-              className="group relative rounded-2xl overflow-hidden bg-gray-100 aspect-square shadow-sm hover:shadow-md transition duration-300"
-            >
-              <img
-                src={cat.image}
-                alt={cat.name[language]}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-3">
-                <span className="text-white font-medium text-sm sm:text-base text-center w-full">
-                  {cat.name[language]}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {language === 'bn' ? 'জনপ্রিয় কালেকশন' : 'Popular Collection'}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {language === 'bn' ? 'আমাদের সেরা এবং ট্রেন্ডি ব্যাগসমূহ' : 'Our top rated and trending bags'}
-            </p>
-          </div>
-          <Link to="/shop" className="text-rose-700 hover:text-rose-800 text-sm font-semibold flex items-center gap-1">
-            <span>{language === 'bn' ? 'সব ব্যাগ দেখুন' : 'View All Bags'}</span>
-            <span className="text-lg">→</span>
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-200 rounded-2xl h-72"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Brand Message Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 sm:p-12 text-center max-w-3xl mx-auto space-y-4">
-          <span className="inline-block p-3 bg-rose-100 text-rose-700 rounded-2xl">
-            <ShoppingBag className="w-8 h-8" />
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {language === 'bn' ? 'চীনের প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগ এখন বাংলাদেশে' : 'China Premium Quality Trendy Bags Now in Bangladesh'}
-          </h2>
-          <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-            {language === 'bn' 
-              ? 'আমরা সরাসরি চায়না থেকে প্রিমিয়াম কোয়ালিটির ব্যাগের কালেকশন ইমপোর্ট করে আপনার কাছে পৌঁছে দিই। প্রতিটি ব্যাগের আধুনিক ডিজাইন ও প্রিমিয়াম ফিনিশিং।' 
-              : 'We import premium quality bag collections directly from China and deliver to your doorstep. Modern design with premium finishing.'}
-          </p>
-          <div className="pt-2">
+      {/* 2. Curated Categories Showcase */}
+      <section className="py-12 md:py-16 bg-[#F6F2EA] border-b border-[#E8E1D5]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[#962D3E] tracking-wider uppercase mb-1">
+                {t('exploreCategories')}
+              </p>
+              <h2 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
+                {t('categoriesSub')}
+              </h2>
+            </div>
             <Link
               to="/shop"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-rose-700 text-white font-semibold rounded-xl hover:bg-rose-800 transition"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#962D3E] hover:text-[#7D2232] transition-colors"
             >
-              <span>{t('shopNow')}</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>{t('viewAll')}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/shop?category=${cat.slug}`}
+                className="group relative flex flex-col bg-white rounded-xl overflow-hidden border border-[#E7E0D3] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="aspect-[4/3] bg-[#EAE4D8] overflow-hidden">
+                  <img
+                    src={cat.image}
+                    alt={language === 'bn' ? cat.nameBn : cat.nameEn}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80';
+                    }}
+                  />
+                </div>
+                <div className="p-3.5 flex flex-col">
+                  <h3 className="font-semibold text-sm sm:text-base text-[#1E1E1E] group-hover:text-[#962D3E] transition-colors">
+                    {language === 'bn' ? cat.nameBn : cat.nameEn}
+                  </h3>
+                  <p className="text-xs text-[#7A7165] mt-0.5 line-clamp-1">
+                    {language === 'bn' ? cat.descriptionBn : cat.descriptionEn}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. Products Showcase with Interactive Tabs */}
+      <section className="py-12 md:py-20 bg-[#FAF7F2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="flex flex-col items-center text-center mb-8">
+            <h2 className="font-serif-luxury text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E1E1E]">
+              {language === 'bn' ? 'জনপ্রিয় ব্যাগ কালেকশন' : 'Popular Bags Collection'}
+            </h2>
+            <p className="text-xs sm:text-sm text-[#736A5E] mt-1 max-w-lg">
+              {language === 'bn'
+                ? 'অনন্য ডিজাইন ও নিখুঁত ফিনিশিংয়ে তৈরি আমাদের সর্বাধিক সমাদৃত ব্যাগ'
+                : 'Handbags, totes, backpacks, and travel gear crafted for everyday elegance'}
+            </p>
+
+            {/* Functional Filter Tabs */}
+            <div className="flex items-center gap-1.5 p-1 bg-[#ECE5D8] rounded-xl mt-6">
+              <button
+                onClick={() => setActiveTab('featured')}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === 'featured'
+                    ? 'bg-white text-[#962D3E] shadow-sm'
+                    : 'text-[#635B50] hover:text-[#1E1E1E]'
+                }`}
+              >
+                {t('featuredProducts')}
+              </button>
+              <button
+                onClick={() => setActiveTab('new')}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === 'new'
+                    ? 'bg-white text-[#962D3E] shadow-sm'
+                    : 'text-[#635B50] hover:text-[#1E1E1E]'
+                }`}
+              >
+                {t('newArrivals')}
+              </button>
+              <button
+                onClick={() => setActiveTab('bestseller')}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === 'bestseller'
+                    ? 'bg-white text-[#962D3E] shadow-sm'
+                    : 'text-[#635B50] hover:text-[#1E1E1E]'
+                }`}
+              >
+                {t('bestSellers')}
+              </button>
+            </div>
+          </div>
+
+          {/* Product Grid */}
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="aspect-[3/4] bg-[#EBE4D8] rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center mt-10">
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#FAF7F2] hover:bg-[#F0E9DC] text-[#2D2A26] border border-[#CFC5B4] text-xs font-bold rounded-xl shadow-sm transition-all"
+            >
+              <span>{t('viewAll')}</span>
+              <ArrowRight className="w-4 h-4 text-[#962D3E]" />
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. Story & Craftsmanship Editorial Banner */}
+      <section className="py-12 md:py-16 bg-[#F1EAE0] border-y border-[#E2D9CC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="flex flex-col gap-4">
+              <span className="text-xs font-bold text-[#962D3E] tracking-widest uppercase">
+                {language === 'bn' ? 'আমাদের দর্শন' : 'Our Philosophy'}
+              </span>
+              <h2 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
+                {language === 'bn'
+                  ? 'চীনের প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগ এখন বাংলাদেশে'
+                  : 'Premium-Quality Trendy Bags from China, Now in Bangladesh'}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#5C5449] leading-relaxed">
+                {language === 'bn'
+                  ? 'আধুনিক ডিজাইন - আকর্ষণীয় লুক'
+                  : 'Modern Design - Attractive Look'}
+              </p>
+              <div className="pt-2">
+                <Link
+                  to="/about"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#962D3E] hover:underline"
+                >
+                  <span>{language === 'bn' ? 'আমাদের পুরো গল্পটি পড়ুন' : 'Read Our Full Story'}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="aspect-square rounded-xl overflow-hidden shadow-sm">
+                <img
+                  src="/images/bag_commuter_backpack_1792675617985.jpg"
+                  alt="Commuter Backpack"
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80';
+                  }}
+                />
+              </div>
+              <div className="aspect-square rounded-xl overflow-hidden shadow-sm mt-6">
+                <img
+                  src="/images/bag_crescent_shoulder_1792675618851.jpg"
+                  alt="Crescent Shoulder Bag"
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80';
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Customer Reviews */}
-      {reviews.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {language === 'bn' ? 'গ্রাহকদের মতামত' : 'Customer Reviews'}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {language === 'bn' ? 'আমাদের সম্মানিত ক্রেতাদের সন্তুষ্টির অভিজ্ঞতা' : 'Experiences from our satisfied buyers'}
+      {/* 5. Customer Reviews / Testimonials */}
+      <section className="py-12 md:py-16 bg-[#FAF7F2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold text-[#962D3E] tracking-wider uppercase mb-1">
+              {t('customerReviews')}
             </p>
+            <h2 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
+              {t('reviewsSub')}
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {reviews.map((rev) => (
-              <div key={rev.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <div className="flex items-center gap-1 text-amber-400">
-                  {[...Array(rev.rating || 5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400" />
-                  ))}
+              <div
+                key={rev.id}
+                className="bg-white p-6 rounded-xl border border-[#E7E0D3] shadow-sm flex flex-col justify-between"
+              >
+                <div>
+                  {/* Star Rating */}
+                  <div className="flex items-center gap-1 text-[#E7A823] mb-3">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-current" />
+                    ))}
+                  </div>
+
+                  {/* Comment */}
+                  <p className="text-xs sm:text-sm text-[#3E3932] leading-relaxed italic">
+                    "{language === 'bn' ? rev.commentBn : rev.commentEn}"
+                  </p>
                 </div>
-                <p className="text-gray-700 text-sm italic">"{rev.comment}"</p>
-                <div className="border-t border-gray-50 pt-3 flex justify-between items-center text-xs text-gray-500">
-                  <span className="font-semibold text-gray-800">{rev.userName}</span>
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">
-                    {language === 'bn' ? 'যাচাইকৃত ক্রেতা' : 'Verified Buyer'}
-                  </span>
+
+                <div className="pt-4 mt-4 border-t border-[#F2ECE3]">
+                  <p className="text-xs font-bold text-[#1E1E1E]">
+                    {language === 'bn' ? rev.customerNameBn : rev.customerNameEn}
+                  </p>
+                  <p className="text-[11px] text-[#857B6F]">
+                    {language === 'bn' ? rev.districtBn : rev.districtEn}
+                    <span aria-hidden="true"> · </span>
+                    <span className="text-[#2E7D32] font-medium">{t('verifiedBuyer')}</span>
+                  </p>
                 </div>
               </div>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
     </div>
   );
-}
+};
