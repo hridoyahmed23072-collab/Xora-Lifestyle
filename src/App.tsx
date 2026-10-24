@@ -10,6 +10,7 @@ import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { CartDrawer } from './components/CartDrawer';
 import { FloatingContactButtons } from './components/FloatingContactButtons';
+import { WelcomePopup } from './components/WelcomePopup'; // <--- Welcome Popup Import
 
 // Customer Pages
 import { Home } from './pages/Home';
@@ -111,7 +112,7 @@ function AppContent() {
       {/* 4. Footer */}
       <Footer />
 
-      {/* 5. Mobile Bottom Navigation (Ergonomic touch bar) */}
+      {/* 5. Mobile Bottom Navigation */}
       <MobileBottomNav />
 
       {/* 6. Slide-Over Cart Drawer */}
@@ -122,6 +123,9 @@ function AppContent() {
 
       {/* 8. Cart Item Added Toast */}
       <CartNotificationToast />
+
+      {/* 9. Welcome Greeting Popup Modal */}
+      <WelcomePopup />
     </div>
   );
 }
