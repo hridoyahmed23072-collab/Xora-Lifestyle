@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ShoppingBag,
   Search,
+  ChevronDown,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -41,7 +42,13 @@ export const Checkout: React.FC = () => {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  
+  // District & Upazila Search Dropdown State
   const [selectedDistrict, setSelectedDistrict] = useState('dhaka');
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState(false);
+  const districtDropdownRef = useRef<HTMLDivElement>(null);
+
   const [selectedUpazila, setSelectedUpazila] = useState('Dhanmondi');
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('inside_dhaka');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
@@ -53,7 +60,7 @@ export const Checkout: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Store Settings (Dynamic delivery charges & wallet numbers)
+  // Store Settings
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
       const cached = localStorage.getItem('xora_settings');
@@ -90,6 +97,17 @@ export const Checkout: React.FC = () => {
     };
   }, []);
 
+  // Close District Search Dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (districtDropdownRef.current && !districtDropdownRef.current.contains(event.target as Node)) {
+        setIsDistrictDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Pricing calculation
   const insideCharge = settings.insideDhakaCharge ?? 80;
   const outsideCharge = settings.outsideDhakaCharge ?? 150;
@@ -97,11 +115,13 @@ export const Checkout: React.FC = () => {
   const deliveryCharge = deliveryZone === 'inside_dhaka' ? insideCharge : outsideCharge;
   const grandTotal = subtotal + deliveryCharge;
 
-  // Handle District Change & Dynamic Upazila Setup
-  const handleDistrictChange = (distId: string) => {
+  // Handle District Change
+  const handleSelectDistrict = (distId: string) => {
     setSelectedDistrict(distId);
+    setDistrictSearch('');
+    setIsDistrictDropdownOpen(false);
     
-    // Auto-update upazilas list based on selected district
+    // Auto-update upazilas list
     const upazilas = districtUpazilas[distId] || ['Sadar'];
     setSelectedUpazila(upazilas[0]);
 
@@ -112,15 +132,24 @@ export const Checkout: React.FC = () => {
     }
   };
 
+  // Filtered District List for Search
+  const filteredDistricts = BANGLADESH_DISTRICTS.filter((d) => {
+    const term = districtSearch.toLowerCase();
+    return (
+      d.nameBn.toLowerCase().includes(term) ||
+      d.nameEn.toLowerCase().includes(term) ||
+      d.divisionBn.toLowerCase().includes(term) ||
+      d.divisionEn.toLowerCase().includes(term)
+    );
+  });
+
+  const activeDistrictObj = BANGLADESH_DISTRICTS.find((d) => d.id === selectedDistrict);
+
   // BD Phone Number Validator
   const validatePhone = (input: string): boolean => {
     const clean = input.replace(/[^0-9]/g, '');
-    if (clean.length === 11 && clean.startsWith('01')) {
-      return true;
-    }
-    if (clean.length === 13 && clean.startsWith('8801')) {
-      return true;
-    }
+    if (clean.length === 11 && clean.startsWith('01')) return true;
+    if (clean.length === 13 && clean.startsWith('8801')) return true;
     return false;
   };
 
@@ -159,9 +188,8 @@ export const Checkout: React.FC = () => {
     setSubmitting(true);
 
     try {
-      const orderDistrictObj = BANGLADESH_DISTRICTS.find((d) => d.id === selectedDistrict);
       const districtName =
-        language === 'bn' ? orderDistrictObj?.nameBn || 'ঢাকা' : orderDistrictObj?.nameEn || 'Dhaka';
+        language === 'bn' ? activeDistrictObj?.nameBn || 'ঢাকা' : activeDistrictObj?.nameEn || 'Dhaka';
 
       const fullDeliveryAddress = `Thana/Upazila: ${selectedUpazila}, Address: ${address.trim()}`;
 
@@ -313,33 +341,73 @@ export const Checkout: React.FC = () => {
                 )}
               </div>
 
-              {/* District & Upazila Grid with Searchable Select */}
+              {/* District & Upazila Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Searchable District Selection */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-[#3D362C] flex items-center justify-between">
-                    <span>{t('district')} <span className="text-[#962D3E]">*</span></span>
-                    <span className="text-[10px] text-[#80766B] font-normal">(খুঁজুন বা সিলেক্ট করুন)</span>
+                
+                {/* Searchable District Dropdown Component */}
+                <div className="flex flex-col gap-1.5 relative" ref={districtDropdownRef}>
+                  <label className="text-xs font-semibold text-[#3D362C]">
+                    {t('district')} <span className="text-[#962D3E]">*</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      value={selectedDistrict}
-                      onChange={(e) => handleDistrictChange(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E] cursor-pointer appearance-none"
-                    >
-                      {BANGLADESH_DISTRICTS.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {language === 'bn' ? `${d.nameBn} (${d.divisionBn} বিভাগ)` : `${d.nameEn} (${d.divisionEn})`}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#80766B]">
-                      ▼
+                  
+                  <button
+                    type="button"
+                    onClick={() => setIsDistrictDropdownOpen(!isDistrictDropdownOpen)}
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] flex items-center justify-between focus:outline-none focus:border-[#962D3E] transition"
+                  >
+                    <span className="font-medium truncate">
+                      {activeDistrictObj 
+                        ? (language === 'bn' ? `${activeDistrictObj.nameBn} (${activeDistrictObj.divisionBn} বিভাগ)` : `${activeDistrictObj.nameEn} (${activeDistrictObj.divisionEn})`)
+                        : 'জেলা সিলেক্ট করুন'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-[#80766B] shrink-0 ml-1" />
+                  </button>
+
+                  {/* Dropdown Popup Panel */}
+                  {isDistrictDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#D5CCC0] rounded-xl shadow-xl z-50 p-2 flex flex-col gap-2 max-h-60">
+                      {/* Search Input Box */}
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-[#80766B] absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={districtSearch}
+                          onChange={(e) => setDistrictSearch(e.target.value)}
+                          placeholder={language === 'bn' ? 'জেলার নাম লিখুন...' : 'Search district...'}
+                          className="w-full pl-8 pr-3 py-1.5 bg-[#FAF7F2] border border-[#E5DDD0] rounded-lg text-xs focus:outline-none focus:border-[#962D3E]"
+                        />
+                      </div>
+
+                      {/* District List Items */}
+                      <div className="overflow-y-auto divide-y divide-[#F2ECE3] pr-1 max-h-44">
+                        {filteredDistricts.length > 0 ? (
+                          filteredDistricts.map((d) => (
+                            <button
+                              key={d.id}
+                              type="button"
+                              onClick={() => handleSelectDistrict(d.id)}
+                              className={`w-full text-left px-3 py-2 text-xs hover:bg-[#FAF0F2] hover:text-[#962D3E] rounded-lg transition flex items-center justify-between ${
+                                selectedDistrict === d.id ? 'bg-[#FAF0F2] text-[#962D3E] font-bold' : 'text-[#1E1E1E]'
+                              }`}
+                            >
+                              <span>{language === 'bn' ? d.nameBn : d.nameEn}</span>
+                              <span className="text-[10px] text-[#80766B]">
+                                {language === 'bn' ? `${d.divisionBn} বিভাগ` : d.divisionEn}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <p className="text-xs text-[#80766B] p-3 text-center">
+                            {language === 'bn' ? 'কোনো জেলা পাওয়া যায়নি' : 'No district found'}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Dynamic Upazila / Thana Dropdown */}
+                {/* Dynamic Upazila Dropdown */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-[#3D362C]">
                     {language === 'bn' ? 'উপজেলা / থানা *' : 'Upazila / Thana *'}
