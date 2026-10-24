@@ -28,9 +28,9 @@ const SAMPLE_DEMO_ORDER: Order = {
   address: 'বাড়ি নং ৪২, রোড নং ১১, বনানী, ঢাকা',
   district: 'ঢাকা',
   deliveryZone: 'inside_dhaka',
-  deliveryCharge: 80,
+  deliveryCharge: 70,
   subtotal: 3850,
-  totalAmount: 3930,
+  totalAmount: 3920,
   paymentMethod: 'cod',
   notes: 'বিকেল ৫টার পর ডেলিভারি দিলে ভালো হয়',
   items: [
@@ -39,7 +39,7 @@ const SAMPLE_DEMO_ORDER: Order = {
       nameBn: 'হস্তশিল্প প্রিমিয়াম জেনুইন লেদার টোট ব্যাগ',
       nameEn: 'Handcrafted Heritage Leather Tote Bag',
       price: 3850,
-      image: '/images/product_leather_bag_1792674216295.jpg',
+      image: '/src/assets/images/product_leather_bag_1792674216295.jpg',
       selectedColor: 'কগনাক ব্রাউন',
       quantity: 1,
       totalPrice: 3850,
@@ -87,16 +87,8 @@ const STORAGE_KEYS = {
 
 function initLocalStorageData() {
   const existingProds = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-  const existingCats = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
-
-  // Auto-upgrade if legacy /src/assets paths or old clothes data detected or missing
-  if (
-    !existingProds ||
-    existingProds.includes('/src/assets') ||
-    (existingCats && existingCats.includes('/src/assets')) ||
-    existingProds.includes('xora-101') ||
-    existingProds.includes('fashion-tunic')
-  ) {
+  // Auto-upgrade to bag catalog if old clothes/candle data detected or missing
+  if (!existingProds || existingProds.includes('xora-101') || existingProds.includes('fashion-tunic')) {
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
     localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
     localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
@@ -111,27 +103,8 @@ function initLocalStorageData() {
   if (!localStorage.getItem(STORAGE_KEYS.REVIEWS)) {
     localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
   }
-  const existingSettingsStr = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-  if (!existingSettingsStr) {
+  if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
-  } else {
-    try {
-      const parsed = JSON.parse(existingSettingsStr);
-      let changed = false;
-      if (parsed.insideDhakaCharge === 70) {
-        parsed.insideDhakaCharge = 80;
-        changed = true;
-      }
-      if (parsed.outsideDhakaCharge === 130) {
-        parsed.outsideDhakaCharge = 150;
-        changed = true;
-      }
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...DEFAULT_SETTINGS, ...parsed }));
-      }
-    } catch {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
-    }
   }
   if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([SAMPLE_DEMO_ORDER]));
@@ -141,6 +114,11 @@ function initLocalStorageData() {
 // Ensure seeded on module evaluation
 if (typeof window !== 'undefined') {
   initLocalStorageData();
+}
+
+// Firestore rejects `undefined` anywhere (even nested), so drop them before writing.
+function stripUndefined<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
 }
 
 export const storeService = {
@@ -213,27 +191,17 @@ export const storeService = {
       try {
         const snap = await getDoc(doc(db, 'settings', 'general'));
         if (snap.exists()) {
-          const remoteData = snap.data() as StoreSettings;
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(remoteData));
-          return { ...DEFAULT_SETTINGS, ...remoteData };
+          return { ...DEFAULT_SETTINGS, ...(snap.data() as StoreSettings) };
         }
+        return DEFAULT_SETTINGS;
       } catch (e) {
-        console.warn('Firestore fetch settings failed, using local storage', e);
+        console.warn('Firestore fetch settings failed, using defaults', e);
+        return DEFAULT_SETTINGS;
       }
     }
 
     const localData = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    if (localData) {
-      try {
-        const parsed = JSON.parse(localData);
-        if (parsed.insideDhakaCharge === 70) parsed.insideDhakaCharge = 80;
-        if (parsed.outsideDhakaCharge === 130) parsed.outsideDhakaCharge = 150;
-        return { ...DEFAULT_SETTINGS, ...parsed };
-      } catch {
-        return DEFAULT_SETTINGS;
-      }
-    }
-    return DEFAULT_SETTINGS;
+    return localData ? JSON.parse(localData) : DEFAULT_SETTINGS;
   },
 
   // Create and submit new order
@@ -276,23 +244,20 @@ export const storeService = {
     // Save directly to Firestore 'orders' collection if configured
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'orders', orderId), newOrder);
+        await setDoc(doc(db, 'orders', orderId), stripUndefined(newOrder));
         console.log('Order successfully saved to Firestore orders collection:', orderId);
       } catch (e) {
-        console.warn('Could not save order to Firestore, saved to local storage:', e);
+        // Do NOT pretend the order succeeded: the shop owner would never see it.
+        console.error('Could not save order to Firestore:', e);
+        throw e;
       }
     }
 
     // Always store to localStorage for client-side persistence and tracking fallback
     const existingOrdersStr = localStorage.getItem(STORAGE_KEYS.ORDERS);
     const orders: Order[] = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
-    const filteredOrders = orders.filter((o) => o && o.id !== 'XOR-844380' && o.id !== orderId);
-    filteredOrders.unshift(newOrder);
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(filteredOrders));
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('xora_orders_updated', { detail: newOrder }));
-    }
+    orders.unshift(newOrder);
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
 
     return newOrder;
   },
@@ -360,50 +325,40 @@ export const storeService = {
 
   // ADMIN: Get all orders
   async getOrders(): Promise<Order[]> {
-    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    const localOrders: Order[] = localData ? JSON.parse(localData) : [];
-    const ordersMap = new Map<string, Order>();
-
-    // 1. Populate local orders first
-    for (const o of localOrders) {
-      if (o && o.id) ordersMap.set(o.id, o);
-    }
-
-    // 2. Fetch remote orders from Firestore and merge
     if (isFirebaseConfigured && db) {
       try {
         const querySnapshot = await getDocs(collection(db, 'orders'));
-        if (!querySnapshot.empty) {
-          for (const docSnap of querySnapshot.docs) {
-            const remoteOrder = { id: docSnap.id, ...docSnap.data() } as Order;
-            ordersMap.set(remoteOrder.id, remoteOrder);
-          }
-        }
-
-        // 3. Sync any local orders to Firestore
-        for (const o of localOrders) {
-          if (o && o.id && o.id !== 'XOR-844380') {
-            setDoc(doc(db, 'orders', o.id), o).catch(() => {});
-          }
-        }
+        // Fill in any missing fields so one incomplete order can never break the admin pages.
+        const orders = querySnapshot.docs.map((d) => {
+          const o: any = { id: d.id, ...d.data() };
+          const subtotal = Number(o.subtotal) || 0;
+          const deliveryCharge = Number(o.deliveryCharge) || 0;
+          return {
+            ...o,
+            customerName: o.customerName ?? o.name ?? '',
+            phone: o.phone ?? '',
+            address: o.address ?? '',
+            district: o.district ?? '',
+            subtotal,
+            deliveryCharge,
+            totalAmount: Number(o.totalAmount ?? o.total) || subtotal + deliveryCharge,
+            paymentMethod: o.paymentMethod ?? 'cod',
+            items: Array.isArray(o.items) ? o.items : [],
+            status: o.status ?? 'pending',
+            createdAt: o.createdAt ?? new Date(0).toISOString(),
+            estimatedDelivery: o.estimatedDelivery ?? '',
+          } as Order;
+        });
+        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return orders;
       } catch (e) {
-        console.warn('Firestore fetch orders failed, using cached/local orders', e);
+        console.error('Firestore fetch orders failed:', e);
+        return [];
       }
     }
 
-    const allOrders = Array.from(ordersMap.values());
-    
-    // If real customer orders exist, remove the sample demo order (XOR-844380) so only real orders are shown
-    const realOrders = allOrders.filter((o) => o.id !== 'XOR-844380');
-    const finalOrders = realOrders.length > 0 ? realOrders : (allOrders.length > 0 ? allOrders : [SAMPLE_DEMO_ORDER]);
-
-    finalOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    try {
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(finalOrders));
-    } catch {}
-
-    return finalOrders;
+    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    return localData ? JSON.parse(localData) : [SAMPLE_DEMO_ORDER];
   },
 
   // ADMIN: Update order status
@@ -524,14 +479,7 @@ export const storeService = {
 
     if (isFirebaseConfigured && db) {
       try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        if (querySnapshot.empty) {
-          for (const c of categories) {
-            await setDoc(doc(db, 'categories', c.id), c);
-          }
-        } else {
-          await setDoc(doc(db, 'categories', newId), newCategory);
-        }
+        await setDoc(doc(db, 'categories', newId), newCategory);
       } catch (e) {
         console.warn('Could not save category to Firestore:', e);
       }
@@ -548,14 +496,7 @@ export const storeService = {
 
     if (isFirebaseConfigured && db) {
       try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        if (querySnapshot.empty) {
-          for (const c of updated) {
-            await setDoc(doc(db, 'categories', c.id), c);
-          }
-        } else {
-          await updateDoc(doc(db, 'categories', id), updates);
-        }
+        await updateDoc(doc(db, 'categories', id), updates);
       } catch (e) {
         console.warn('Could not update category in Firestore:', e);
       }
@@ -572,14 +513,7 @@ export const storeService = {
 
     if (isFirebaseConfigured && db) {
       try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        if (querySnapshot.empty) {
-          for (const c of filtered) {
-            await setDoc(doc(db, 'categories', c.id), c);
-          }
-        } else {
-          await deleteDoc(doc(db, 'categories', id));
-        }
+        await deleteDoc(doc(db, 'categories', id));
       } catch (e) {
         console.warn('Could not delete category from Firestore:', e);
       }
@@ -651,16 +585,8 @@ export const storeService = {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 
     if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'settings', 'general'), settings);
-      } catch (e) {
-        console.warn('Could not update settings in Firestore:', e);
-      }
-    }
-
-    // Broadcast change across tabs and open windows
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('xora_settings_updated'));
+      // Throws on failure so the admin sees the real error instead of a fake "saved".
+      await setDoc(doc(db, 'settings', 'general'), stripUndefined(settings));
     }
 
     return true;

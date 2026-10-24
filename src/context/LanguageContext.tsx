@@ -38,7 +38,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Convert numbers to Bengali numerals if language is Bangla
   const formatPrice = (amount: number): string => {
-    const formattedNum = amount.toLocaleString('en-US');
+    const safeAmount = Number.isFinite(Number(amount)) ? Number(amount) : 0;
+    const formattedNum = safeAmount.toLocaleString('en-US');
     if (language === 'bn') {
       const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
       const bnNumber = formattedNum.replace(/[0-9]/g, (w) => bnDigits[+w]);
