@@ -8,6 +8,7 @@ import {
   AlertCircle,
   ArrowRight,
   ShoppingBag,
+  Search,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -100,7 +101,7 @@ export const Checkout: React.FC = () => {
   const handleDistrictChange = (distId: string) => {
     setSelectedDistrict(distId);
     
-    // Auto-update upazilas list based on selected district, default to first item if available
+    // Auto-update upazilas list based on selected district
     const upazilas = districtUpazilas[distId] || ['Sadar'];
     setSelectedUpazila(upazilas[0]);
 
@@ -111,7 +112,7 @@ export const Checkout: React.FC = () => {
     }
   };
 
-  // BD Phone Number Validator (11 digits, starts with 013, 014, 015, 016, 017, 018, 019)
+  // BD Phone Number Validator
   const validatePhone = (input: string): boolean => {
     const clean = input.replace(/[^0-9]/g, '');
     if (clean.length === 11 && clean.startsWith('01')) {
@@ -162,7 +163,6 @@ export const Checkout: React.FC = () => {
       const districtName =
         language === 'bn' ? orderDistrictObj?.nameBn || 'ঢাকা' : orderDistrictObj?.nameEn || 'Dhaka';
 
-      // Combine upazila and address for comprehensive delivery details
       const fullDeliveryAddress = `Thana/Upazila: ${selectedUpazila}, Address: ${address.trim()}`;
 
       const orderItems = cart.map((i) => ({
@@ -222,7 +222,6 @@ export const Checkout: React.FC = () => {
     );
   }
 
-  // Get current upazila list based on active district selection
   const currentUpazilas = districtUpazilas[selectedDistrict] || ['Sadar', 'Area 1', 'Area 2'];
 
   return (
@@ -280,7 +279,7 @@ export const Checkout: React.FC = () => {
                 {errors.name && <p className="text-[11px] text-[#D32F2F]">{errors.name}</p>}
               </div>
 
-              {/* Phone Number with BD validation */}
+              {/* Phone Number */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-[#3D362C]">
                   {t('phoneNumber')} <span className="text-[#962D3E]">*</span>
@@ -314,24 +313,30 @@ export const Checkout: React.FC = () => {
                 )}
               </div>
 
-              {/* District & Upazila Side-by-Side Grid */}
+              {/* District & Upazila Grid with Searchable Select */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* 64 Districts Dropdown */}
+                {/* Searchable District Selection */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-[#3D362C]">
-                    {t('district')} <span className="text-[#962D3E]">*</span>
+                  <label className="text-xs font-semibold text-[#3D362C] flex items-center justify-between">
+                    <span>{t('district')} <span className="text-[#962D3E]">*</span></span>
+                    <span className="text-[10px] text-[#80766B] font-normal">(খুঁজুন বা সিলেক্ট করুন)</span>
                   </label>
-                  <select
-                    value={selectedDistrict}
-                    onChange={(e) => handleDistrictChange(e.target.value)}
-                    className="px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E] cursor-pointer"
-                  >
-                    {BANGLADESH_DISTRICTS.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {language === 'bn' ? `${d.nameBn} (${d.divisionBn} বিভাগ)` : `${d.nameEn} (${d.divisionEn})`}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={selectedDistrict}
+                      onChange={(e) => handleDistrictChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E] cursor-pointer appearance-none"
+                    >
+                      {BANGLADESH_DISTRICTS.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {language === 'bn' ? `${d.nameBn} (${d.divisionBn} বিভাগ)` : `${d.nameEn} (${d.divisionEn})`}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#80766B]">
+                      ▼
+                    </div>
+                  </div>
                 </div>
 
                 {/* Dynamic Upazila / Thana Dropdown */}
@@ -442,7 +447,7 @@ export const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              {/* Order Notes (Optional) */}
+              {/* Order Notes */}
               <div className="flex flex-col gap-1.5 pt-2">
                 <label className="text-xs font-semibold text-[#544C41]">
                   {t('orderNotes')}
@@ -457,7 +462,7 @@ export const Checkout: React.FC = () => {
               </div>
             </div>
 
-            {/* Step 2: Payment Methods (COD, bKash, Nagad) */}
+            {/* Step 2: Payment Methods */}
             <div className="bg-white p-5 sm:p-7 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-4">
               <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
                 <span className="w-6 h-6 rounded-full bg-[#962D3E] text-white text-xs font-bold flex items-center justify-center">
@@ -654,13 +659,12 @@ export const Checkout: React.FC = () => {
 
           </div>
 
-          {/* Right Summary: Items, Subtotal, Delivery Fee & Confirm Button */}
+          {/* Right Summary */}
           <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-5 sticky top-24">
             <h2 className="font-serif-luxury text-lg font-bold text-[#1E1E1E] border-b border-[#F0EAE0] pb-3">
               {t('orderSummary')}
             </h2>
 
-            {/* Cart Items Preview */}
             <div className="divide-y divide-[#F2ECE3] max-h-64 overflow-y-auto pr-1">
               {cart.map((item, idx) => (
                 <div key={idx} className="py-3 flex items-center gap-3">
@@ -686,7 +690,6 @@ export const Checkout: React.FC = () => {
               ))}
             </div>
 
-            {/* Pricing Breakdown */}
             <div className="pt-3 border-t border-[#F0EAE0] flex flex-col gap-2.5 text-xs sm:text-sm text-[#4A433A]">
               <div className="flex justify-between">
                 <span>{t('subtotal')}</span>
@@ -700,7 +703,6 @@ export const Checkout: React.FC = () => {
               </div>
             </div>
 
-            {/* Total Payable */}
             <div className="pt-3 border-t border-[#E8E1D5] flex justify-between items-baseline">
               <span className="text-base font-bold text-[#1E1E1E]">{t('total')}</span>
               <span className="text-2xl font-bold text-[#962D3E] tabular-nums">
@@ -708,7 +710,6 @@ export const Checkout: React.FC = () => {
               </span>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={submitting}
