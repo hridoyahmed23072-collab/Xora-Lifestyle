@@ -34,20 +34,22 @@ export const Home: React.FC = () => {
     return true;
   });
 
-  // আপনার দেওয়া নির্দিষ্ট ছবির আসল লিংক
-  const heroBgImage = "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&q=80&w=2000";
-
   return (
     <div className="flex flex-col min-h-screen">
       
-      {/* 1. Hero Campaign Section - Full Width Background with Dark Overlay */}
+      {/* 1. Hero Campaign Section - Full Width Background with Local Image Fallback */}
       <section className="relative min-h-[580px] md:min-h-[640px] flex items-center bg-gray-900 text-white overflow-hidden border-b border-[#E8E1D5]">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src={heroBgImage} 
+            src="/src/assets/images/hero_luxury_bag_model_1792783113964.jpg" 
             alt="Hero Background" 
             className="w-full h-full object-cover object-top"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              target.onerror = null;
+              target.src = '/images/hero_luxury_bag_model_1792783113964.jpg';
+            }}
           />
           {/* Dark Overlay for Text Readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40 md:to-transparent" />
@@ -142,13 +144,6 @@ export const Home: React.FC = () => {
                     src={cat.image}
                     alt={language === 'bn' ? cat.nameBn : cat.nameEn}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    referrerPolicy="no-referrer"
-                    loading="lazy"
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement;
-                      target.onerror = null;
-                      target.src = 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80';
-                    }}
                   />
                 </div>
                 <div className="p-3.5 flex flex-col">
@@ -166,7 +161,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Products Showcase with Interactive Tabs */}
+      {/* 3. Products Showcase */}
       <section className="py-12 md:py-20 bg-[#FAF7F2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -180,7 +175,6 @@ export const Home: React.FC = () => {
                 : 'Handbags, totes, backpacks, and travel gear crafted for everyday elegance'}
             </p>
 
-            {/* Functional Filter Tabs */}
             <div className="flex items-center gap-1.5 p-1 bg-[#ECE5D8] rounded-xl mt-6">
               <button
                 onClick={() => setActiveTab('featured')}
@@ -215,7 +209,6 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Product Grid */}
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
               {[1, 2, 3, 4].map((i) => (
@@ -243,7 +236,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Story & Craftsmanship Editorial Banner */}
+      {/* 4. Editorial Banner */}
       <section className="py-12 md:py-16 bg-[#F1EAE0] border-y border-[#E2D9CC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -275,30 +268,16 @@ export const Home: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="aspect-square rounded-xl overflow-hidden shadow-sm">
                 <img
-                  src="/images/bag_commuter_backpack_1792675617985.jpg"
+                  src="/src/assets/images/bag_commuter_backpack_1792675617985.jpg"
                   alt="Commuter Backpack"
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.onerror = null;
-                    target.src = 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80';
-                  }}
                 />
               </div>
               <div className="aspect-square rounded-xl overflow-hidden shadow-sm mt-6">
                 <img
-                  src="/images/bag_crescent_shoulder_1792675618851.jpg"
+                  src="/src/assets/images/bag_crescent_shoulder_1792675618851.jpg"
                   alt="Crescent Shoulder Bag"
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.onerror = null;
-                    target.src = 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80';
-                  }}
                 />
               </div>
             </div>
@@ -306,7 +285,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Customer Reviews / Testimonials */}
+      {/* 5. Customer Reviews */}
       <section className="py-12 md:py-16 bg-[#FAF7F2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
@@ -325,14 +304,12 @@ export const Home: React.FC = () => {
                 className="bg-white p-6 rounded-xl border border-[#E7E0D3] shadow-sm flex flex-col justify-between"
               >
                 <div>
-                  {/* Star Rating */}
                   <div className="flex items-center gap-1 text-[#E7A823] mb-3">
                     {[...Array(rev.rating)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 fill-current" />
                     ))}
                   </div>
 
-                  {/* Comment */}
                   <p className="text-xs sm:text-sm text-[#3E3932] leading-relaxed italic">
                     "{language === 'bn' ? rev.commentBn : rev.commentEn}"
                   </p>
