@@ -1,364 +1,748 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  ShieldCheck,
+  Truck,
+  CreditCard,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  ShoppingBag,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Truck, ShieldCheck, ArrowRight } from 'lucide-react';
+import { BANGLADESH_DISTRICTS, DEFAULT_SETTINGS } from '../lib/constants';
+import { storeService } from '../services/storeService';
+import { DeliveryZone, PaymentMethod, StoreSettings } from '../types';
 
-// Bangladesh District & Upazila Data Mapping
-const bdLocations: Record<string, string[]> = {
-  Dhaka: ['Dhanmondi', 'Gulshan', 'Uttara', 'Mirpur', 'Banani', 'Mohammadpur', 'Badda', 'Tejgaon', 'Dhakshin Khan', 'Keraniganj', 'Savar', 'Dhamrai'],
-  Gazipur: ['Gazipur Sadar', 'Kaliakair', 'Kaliganj', 'Kapasia', 'Sreepur'],
-  Narayanganj: ['Narayanganj Sadar', 'Araihazar', 'Bandar', 'Rupganj', 'Sonargaon'],
-  Chattogram: ['Kotwali', 'Panchlaish', 'Halishahar', 'Agrabad', 'Hathazari', 'Sitakunda', 'Patiya', 'Anwara'],
-  Sylhet: ['Sylhet Sadar', 'Beanibazar', 'Golapganj', 'Sreemangal', 'Habiganj Sadar'],
-  Rajshahi: ['Boalia', 'Rajpara', 'Motihar', 'Paba', 'Puthia', 'Godagari'],
-  Khulna: ['Khulna Sadar', 'Sonadanga', 'Khalishpur', 'Daulatpur', 'Rupsha', 'Phultala'],
-  Barishal: ['Barishal Sadar', 'Bakerganj', 'Babuganj', 'Gournadi', 'Wazirpur'],
-  Rangpur: ['Rangpur Sadar', 'Mithapukur', 'Pirganj', 'Badarganj', 'Kaunia'],
-  Mymensingh: ['Mymensingh Sadar', 'Muktagacha', 'Bhaluka', 'Trishal', 'Gafargaon'],
-  Cumilla: ['Cumilla Sadar', 'Daudkandi', 'Chandina', 'Laksam', 'Burichang'],
-  Bogura: ['Bogura Sadar', 'Shajahanpur', 'Sherpur', 'Ghabtali', 'Shibganj'],
+// District to Upazila/Thana Mapping for Bangladesh
+const districtUpazilas: Record<string, string[]> = {
+  dhaka: ['Dhanmondi', 'Gulshan', 'Uttara', 'Mirpur', 'Banani', 'Mohammadpur', 'Badda', 'Tejgaon', 'Dhakshin Khan', 'Keraniganj', 'Savar', 'Dhamrai'],
+  gazipur: ['Gazipur Sadar', 'Kaliakair', 'Kaliganj', 'Kapasia', 'Sreepur'],
+  narayanganj: ['Narayanganj Sadar', 'Araihazar', 'Bandar', 'Rupganj', 'Sonargaon'],
+  chattogram: ['Kotwali', 'Panchlaish', 'Halishahar', 'Agrabad', 'Hathazari', 'Sitakunda', 'Patiya', 'Anwara'],
+  sylhet: ['Sylhet Sadar', 'Beanibazar', 'Golapganj', 'Sreemangal', 'Habiganj Sadar'],
+  rajshahi: ['Boalia', 'Rajpara', 'Motihar', 'Paba', 'Puthia', 'Godagari'],
+  khulna: ['Khulna Sadar', 'Sonadanga', 'Khalishpur', 'Daulatpur', 'Rupsha', 'Phultala'],
+  barishal: ['Barishal Sadar', 'Bakerganj', 'Babuganj', 'Gournadi', 'Wazirpur'],
+  rangpur: ['Rangpur Sadar', 'Mithapukur', 'Pirganj', 'Badarganj', 'Kaunia'],
+  mymensingh: ['Mymensingh Sadar', 'Muktagacha', 'Bhaluka', 'Trishal', 'Gafargaon'],
+  cumilla: ['Cumilla Sadar', 'Daudkandi', 'Chandina', 'Laksam', 'Burichang'],
+  bogura: ['Bogura Sadar', 'Shajahanpur', 'Sherpur', 'Ghabtali', 'Shibganj'],
 };
 
 export const Checkout: React.FC = () => {
-  const { cart, totalAmount, clearCart } = useCart();
-  const { language } = useLanguage();
+  const { cart, subtotal, clearCart } = useCart();
+  const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    district: 'Dhaka',
-    upazila: 'Dhanmondi',
-    address: '',
-    deliveryArea: 'inside', // 'inside' = 80, 'outside' = 150
-    paymentMethod: 'cod',
+  // Form State
+  const [customerName, setCustomerName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('dhaka');
+  const [selectedUpazila, setSelectedUpazila] = useState('Dhanmondi');
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('inside_dhaka');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
+  const [senderNumber, setSenderNumber] = useState('');
+  const [trxId, setTrxId] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // UI / Validation State
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Store Settings (Dynamic delivery charges & wallet numbers)
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    try {
+      const cached = localStorage.getItem('xora_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.insideDhakaCharge === 70) parsed.insideDhakaCharge = 80;
+        if (parsed.outsideDhakaCharge === 130) parsed.outsideDhakaCharge = 150;
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      }
+    } catch {}
+    return DEFAULT_SETTINGS;
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Auto District Change Handler
-  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedDistrict = e.target.value;
-    const defaultUpazila = bdLocations[selectedDistrict]?.[0] || '';
-    const isDhaka = selectedDistrict === 'Dhaka';
-
-    setFormData({
-      ...formData,
-      district: selectedDistrict,
-      upazila: defaultUpazila,
-      deliveryArea: isDhaka ? 'inside' : 'outside',
+  useEffect(() => {
+    let isMounted = true;
+    storeService.getSettings().then((loaded) => {
+      if (isMounted && loaded) {
+        setSettings(loaded);
+      }
     });
+
+    const handleSync = () => {
+      storeService.getSettings().then((loaded) => {
+        if (isMounted && loaded) setSettings(loaded);
+      });
+    };
+
+    window.addEventListener('xora_settings_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('xora_settings_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  // Pricing calculation
+  const insideCharge = settings.insideDhakaCharge ?? 80;
+  const outsideCharge = settings.outsideDhakaCharge ?? 150;
+
+  const deliveryCharge = deliveryZone === 'inside_dhaka' ? insideCharge : outsideCharge;
+  const grandTotal = subtotal + deliveryCharge;
+
+  // Handle District Change & Dynamic Upazila Setup
+  const handleDistrictChange = (distId: string) => {
+    setSelectedDistrict(distId);
+    
+    // Auto-update upazilas list based on selected district, default to first item if available
+    const upazilas = districtUpazilas[distId] || ['Sadar'];
+    setSelectedUpazila(upazilas[0]);
+
+    if (distId === 'dhaka') {
+      setDeliveryZone('inside_dhaka');
+    } else {
+      setDeliveryZone('outside_dhaka');
+    }
   };
 
-  const deliveryFee = formData.deliveryArea === 'inside' ? 80 : 150;
-  const grandTotal = totalAmount + deliveryFee;
+  // BD Phone Number Validator (11 digits, starts with 013, 014, 015, 016, 017, 018, 019)
+  const validatePhone = (input: string): boolean => {
+    const clean = input.replace(/[^0-9]/g, '');
+    if (clean.length === 11 && clean.startsWith('01')) {
+      return true;
+    }
+    if (clean.length === 13 && clean.startsWith('8801')) {
+      return true;
+    }
+    return false;
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address) return;
+    const newErrors: Record<string, string> = {};
 
-    setIsSubmitting(true);
-    
-    setTimeout(() => {
-      const orderId = 'XORA-' + Math.floor(100000 + Math.random() * 900000);
+    if (!customerName.trim()) {
+      newErrors.name = language === 'bn' ? 'আপনার নাম লিখুন' : 'Please enter your full name';
+    }
+
+    if (!validatePhone(phone)) {
+      newErrors.phone = t('phoneInvalid');
+    }
+
+    if (!address.trim() || address.trim().length < 6) {
+      newErrors.address =
+        language === 'bn'
+          ? 'অনুগ্রহ করে সম্পূর্ণ বিস্তারিত ঠিকানা লিখুন (রোড, এলাকা ইত্যাদি)'
+          : 'Please provide detailed delivery address';
+    }
+
+    if ((paymentMethod === 'bkash' || paymentMethod === 'nagad') && !trxId.trim()) {
+      newErrors.trxId =
+        language === 'bn'
+          ? 'অনুগ্রহ করে সেন্ড মানি করার পর প্রাপ্ত ট্রানজেকশন আইডি (TrxID) দিন'
+          : 'Please provide the transaction ID (TrxID)';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const orderDistrictObj = BANGLADESH_DISTRICTS.find((d) => d.id === selectedDistrict);
+      const districtName =
+        language === 'bn' ? orderDistrictObj?.nameBn || 'ঢাকা' : orderDistrictObj?.nameEn || 'Dhaka';
+
+      // Combine upazila and address for comprehensive delivery details
+      const fullDeliveryAddress = `Thana/Upazila: ${selectedUpazila}, Address: ${address.trim()}`;
+
+      const orderItems = cart.map((i) => ({
+        productId: i.productId,
+        nameBn: i.nameBn,
+        nameEn: i.nameEn,
+        price: i.price,
+        image: i.image,
+        selectedColor: i.selectedColor || null,
+        selectedSize: i.selectedSize || null,
+        quantity: i.quantity,
+        totalPrice: i.price * i.quantity,
+      }));
+
+      const newOrder = await storeService.createOrder({
+        customerName: customerName.trim(),
+        phone: phone.trim(),
+        address: fullDeliveryAddress,
+        district: districtName,
+        deliveryZone,
+        deliveryCharge,
+        subtotal,
+        totalAmount: grandTotal,
+        paymentMethod,
+        paymentNumber: senderNumber.trim() || undefined,
+        trxId: trxId.trim() || undefined,
+        notes: notes.trim() || undefined,
+        items: orderItems,
+      });
+
       clearCart();
-      setIsSubmitting(false);
-      navigate(`/order-success/${orderId}`);
-    }, 800);
+      navigate(`/order-success/${newOrder.id}`);
+    } catch (err) {
+      console.error('Failed to create order', err);
+      setErrors({
+        submit:
+          language === 'bn'
+            ? 'অর্ডার প্রক্রিয়া করতে সাময়িক সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+            : 'Something went wrong. Please try again.',
+      });
+      setSubmitting(false);
+    }
   };
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-4 text-center">
-        <ShoppingBag className="w-16 h-16 text-[#962D3E] mb-4 animate-bounce" />
-        <h2 className="text-xl font-bold mb-2 text-[#1E1E1E]">
-          {language === 'bn' ? 'আপনার ব্যাগটি খালি!' : 'Your bag is empty!'}
-        </h2>
-        <p className="text-xs text-[#6B6357] mb-6">
-          {language === 'bn' ? 'অর্ডার করতে শপ থেকে পণ্য বেছে নিন।' : 'Add products to your bag to place an order.'}
-        </p>
-        <button
-          onClick={() => navigate('/shop')}
-          className="px-6 py-3 bg-[#962D3E] text-white text-xs font-bold rounded-xl shadow-md hover:bg-[#7d2232] transition"
+      <div className="py-20 px-4 max-w-md mx-auto text-center min-h-[50vh] flex flex-col justify-center items-center">
+        <ShoppingBag className="w-12 h-12 text-[#968E82] mb-3" />
+        <h2 className="text-xl font-bold text-[#1E1E1E] mb-2">{t('cartEmpty')}</h2>
+        <Link
+          to="/shop"
+          className="mt-4 px-6 py-2.5 bg-[#962D3E] text-white text-xs font-semibold rounded-lg"
         >
-          {language === 'bn' ? 'শপে যান' : 'Go to Shop'}
-        </button>
+          {t('continueShopping')}
+        </Link>
       </div>
     );
   }
 
+  // Get current upazila list based on active district selection
+  const currentUpazilas = districtUpazilas[selectedDistrict] || ['Sadar', 'Area 1', 'Area 2'];
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 md:py-10 text-[#1E1E1E]">
-      <div className="mb-6">
-        <h1 className="text-2xl font-serif-luxury font-bold text-[#1E1E1E]">
-          {language === 'bn' ? 'অর্ডার সম্পন্ন করুন' : 'Complete Your Order'}
-        </h1>
-        <p className="text-xs text-[#6B6357] mt-1">
-          {language === 'bn' 
-            ? 'নিচের তথ্যগুলো পূরণ করে আপনার অর্ডারটি এখনই নিশ্চিত করুন।' 
-            : 'Fill in the information below to confirm your order now.'}
-        </p>
-      </div>
+    <div className="py-8 md:py-12 bg-[#FAF7F2] min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-[#1E1E1E]">
+            {t('checkoutTitle')}
+          </h1>
+          <p className="text-xs sm:text-sm text-[#736A5E] mt-1">
+            {language === 'bn'
+              ? 'নিচের তথ্যগুলো পূরণ করে আপনার অর্ডারটি এখনই নিশ্চিত করুন।'
+              : 'Provide shipping and payment details to confirm your order.'}
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Customer Details Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-7 flex flex-col gap-5">
-          <div className="bg-white p-5 rounded-2xl border border-[#E5DDD0] shadow-xs flex flex-col gap-3.5">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#F0EAE1]">
-              <span className="w-5 h-5 rounded-full bg-[#962D3E] text-white text-[11px] font-bold flex items-center justify-center">1</span>
-              <h3 className="text-xs font-bold text-[#1E1E1E] uppercase tracking-wider">
-                {language === 'bn' ? 'গ্রাহকের তথ্য ও ডেলিভারি ঠিকানা' : 'Customer & Shipping Address'}
-              </h3>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold mb-1 text-[#2D2A26]">
-                {language === 'bn' ? 'আপনার সম্পূর্ণ নাম *' : 'Full Name *'}
-              </label>
-              <input
-                type="text"
-                required
-                placeholder={language === 'bn' ? 'যেমন: মোহাম্মদ আরিফ' : 'e.g. John Doe'}
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#DDD5C7] text-xs focus:outline-none focus:border-[#962D3E] transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold mb-1 text-[#2D2A26]">
-                {language === 'bn' ? 'মোবাইল নম্বর (১১ ডিজিট) *' : 'Phone Number (11 digits) *'}
-              </label>
-              <input
-                type="tel"
-                required
-                placeholder="017XXXXXXXX"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#DDD5C7] text-xs focus:outline-none focus:border-[#962D3E] transition"
-              />
-            </div>
-
-            {/* Zilla / District Selection */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-semibold mb-1 text-[#2D2A26]">
-                  {language === 'bn' ? 'জেলা নির্বাচন করুন *' : 'Select District *'}
-                </label>
-                <select
-                  value={formData.district}
-                  onChange={handleDistrictChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#DDD5C7] text-xs focus:outline-none focus:border-[#962D3E] transition cursor-pointer"
-                >
-                  {Object.keys(bdLocations).map((dist) => (
-                    <option key={dist} value={dist}>
-                      {dist}
-                    </option>
-                  ))}
-                </select>
+        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Left Form: Shipping, District, Upazila & Payment Method */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            
+            {/* Step 1: Contact & Delivery Address */}
+            <div className="bg-white p-5 sm:p-7 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
+                <span className="w-6 h-6 rounded-full bg-[#962D3E] text-white text-xs font-bold flex items-center justify-center">
+                  1
+                </span>
+                <h2 className="font-semibold text-base text-[#1E1E1E]">
+                  {t('contactShipping')}
+                </h2>
               </div>
 
-              {/* Upazila Selection (Dynamic based on District) */}
-              <div>
-                <label className="block text-[11px] font-semibold mb-1 text-[#2D2A26]">
-                  {language === 'bn' ? 'উপজেলা / থানা নির্বাচন করুন *' : 'Select Upazila / Thana *'}
+              {/* Full Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#3D362C]">
+                  {t('fullName')} <span className="text-[#962D3E]">*</span>
                 </label>
-                <select
-                  value={formData.upazila}
-                  onChange={(e) => setFormData({ ...formData, upazila: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#DDD5C7] text-xs focus:outline-none focus:border-[#962D3E] transition cursor-pointer"
-                >
-                  {(bdLocations[formData.district] || []).map((upz) => (
-                    <option key={upz} value={upz}>
-                      {upz}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold mb-1 text-[#2D2A26]">
-                {language === 'bn' ? 'সম্পূর্ণ ঠিকানা (বাসা/ফ্ল্যাট, রোড, এলাকা) *' : 'Full Address *'}
-              </label>
-              <textarea
-                required
-                rows={2}
-                placeholder={language === 'bn' ? 'যেমন: বাড়ি ৫২, রোড ৭, ধানমন্ডি, ঢাকা' : 'House, Street, Area'}
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#DDD5C7] text-xs focus:outline-none focus:border-[#962D3E] transition resize-none"
-              />
-            </div>
-
-            {/* Delivery Area Selection */}
-            <div>
-              <label className="block text-[11px] font-semibold mb-1.5 text-[#2D2A26]">
-                {language === 'bn' ? 'ডেলিভারি এলাকা ও চার্জ *' : 'Delivery Area & Fee *'}
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label 
-                  className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                    formData.deliveryArea === 'inside' 
-                      ? 'border-[#962D3E] bg-[#FAF0F2]' 
-                      : 'border-[#DDD5C7] bg-[#FAF8F5]'
+                <input
+                  type="text"
+                  required
+                  value={customerName}
+                  onChange={(e) => {
+                    setCustomerName(e.target.value);
+                    if (errors.name) setErrors({ ...errors, name: '' });
+                  }}
+                  placeholder={t('fullNamePlaceholder')}
+                  className={`px-3.5 py-2.5 rounded-lg border text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:ring-1 transition-all ${
+                    errors.name
+                      ? 'border-[#D32F2F] focus:ring-[#D32F2F]'
+                      : 'border-[#D5CCC0] focus:border-[#962D3E] focus:ring-[#962D3E]'
                   }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="radio" 
-                      name="deliveryArea" 
-                      checked={formData.deliveryArea === 'inside'} 
-                      onChange={() => setFormData({ ...formData, deliveryArea: 'inside' })}
-                      className="accent-[#962D3E]"
+                />
+                {errors.name && <p className="text-[11px] text-[#D32F2F]">{errors.name}</p>}
+              </div>
+
+              {/* Phone Number with BD validation */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#3D362C]">
+                  {t('phoneNumber')} <span className="text-[#962D3E]">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (errors.phone) setErrors({ ...errors, phone: '' });
+                  }}
+                  placeholder={t('phonePlaceholder')}
+                  className={`px-3.5 py-2.5 rounded-lg border text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:ring-1 tabular-nums transition-all ${
+                    errors.phone
+                      ? 'border-[#D32F2F] focus:ring-[#D32F2F]'
+                      : 'border-[#D5CCC0] focus:border-[#962D3E] focus:ring-[#962D3E]'
+                  }`}
+                />
+                {errors.phone ? (
+                  <p className="text-[11px] text-[#D32F2F] flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{errors.phone}</span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-[#80766B]">
+                    {language === 'bn'
+                      ? 'ডেলিভারির জন্য আপনার সচল নম্বর দিন (যেমন: 01712345678)'
+                      : 'We will call this number for order confirmation'}
+                  </p>
+                )}
+              </div>
+
+              {/* District & Upazila Side-by-Side Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 64 Districts Dropdown */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#3D362C]">
+                    {t('district')} <span className="text-[#962D3E]">*</span>
+                  </label>
+                  <select
+                    value={selectedDistrict}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E] cursor-pointer"
+                  >
+                    {BANGLADESH_DISTRICTS.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {language === 'bn' ? `${d.nameBn} (${d.divisionBn} বিভাগ)` : `${d.nameEn} (${d.divisionEn})`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dynamic Upazila / Thana Dropdown */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#3D362C]">
+                    {language === 'bn' ? 'উপজেলা / থানা *' : 'Upazila / Thana *'}
+                  </label>
+                  <select
+                    value={selectedUpazila}
+                    onChange={(e) => setSelectedUpazila(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E] cursor-pointer"
+                  >
+                    {currentUpazilas.map((upz) => (
+                      <option key={upz} value={upz}>
+                        {upz}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Full Address */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#3D362C]">
+                  {t('fullAddress')} <span className="text-[#962D3E]">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (errors.address) setErrors({ ...errors, address: '' });
+                  }}
+                  placeholder={t('addressPlaceholder')}
+                  className={`px-3.5 py-2.5 rounded-lg border text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:ring-1 transition-all ${
+                    errors.address
+                      ? 'border-[#D32F2F] focus:ring-[#D32F2F]'
+                      : 'border-[#D5CCC0] focus:border-[#962D3E] focus:ring-[#962D3E]'
+                  }`}
+                />
+                {errors.address && <p className="text-[11px] text-[#D32F2F]">{errors.address}</p>}
+              </div>
+
+              {/* Delivery Zone Selector */}
+              <div className="pt-2">
+                <label className="text-xs font-semibold text-[#3D362C] block mb-2">
+                  {t('deliveryMethod')}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      deliveryZone === 'inside_dhaka'
+                        ? 'border-[#962D3E] bg-[#FFF8F9] ring-1 ring-[#962D3E]'
+                        : 'border-[#DDD4C5] bg-[#FAF7F2]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="deliveryZone"
+                        checked={deliveryZone === 'inside_dhaka'}
+                        onChange={() => setDeliveryZone('inside_dhaka')}
+                        className="text-[#962D3E] focus:ring-[#962D3E]"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-[#1E1E1E]">
+                          {t('insideDhaka')} ({formatPrice(insideCharge)})
+                        </p>
+                        <p className="text-[11px] text-[#786F63]">
+                          {language === 'bn' ? '২-৩ কার্যদিবস' : '2-3 business days'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-[#962D3E]">
+                      {formatPrice(insideCharge)}
+                    </span>
+                  </label>
+
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      deliveryZone === 'outside_dhaka'
+                        ? 'border-[#962D3E] bg-[#FFF8F9] ring-1 ring-[#962D3E]'
+                        : 'border-[#DDD4C5] bg-[#FAF7F2]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="deliveryZone"
+                        checked={deliveryZone === 'outside_dhaka'}
+                        onChange={() => setDeliveryZone('outside_dhaka')}
+                        className="text-[#962D3E] focus:ring-[#962D3E]"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-[#1E1E1E]">
+                          {t('outsideDhaka')} ({formatPrice(outsideCharge)})
+                        </p>
+                        <p className="text-[11px] text-[#786F63]">
+                          {language === 'bn' ? '৩-৫ কার্যদিবস' : '3-5 business days'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-[#962D3E]">
+                      {formatPrice(outsideCharge)}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Order Notes (Optional) */}
+              <div className="flex flex-col gap-1.5 pt-2">
+                <label className="text-xs font-semibold text-[#544C41]">
+                  {t('orderNotes')}
+                </label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder={t('orderNotesPlaceholder')}
+                  className="px-3.5 py-2 rounded-lg border border-[#D5CCC0] text-xs text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E]"
+                />
+              </div>
+            </div>
+
+            {/* Step 2: Payment Methods (COD, bKash, Nagad) */}
+            <div className="bg-white p-5 sm:p-7 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
+                <span className="w-6 h-6 rounded-full bg-[#962D3E] text-white text-xs font-bold flex items-center justify-center">
+                  2
+                </span>
+                <h2 className="font-semibold text-base text-[#1E1E1E]">
+                  {t('paymentMethod')}
+                </h2>
+              </div>
+
+              {/* COD Option */}
+              <label
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
+                  paymentMethod === 'cod'
+                    ? 'border-[#962D3E] bg-[#FFF8F9] ring-1 ring-[#962D3E]'
+                    : 'border-[#DDD4C5] bg-[#FAF7F2]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => setPaymentMethod('cod')}
+                      className="text-[#962D3E] focus:ring-[#962D3E]"
                     />
-                    <div>
-                      <p className="text-xs font-bold">{language === 'bn' ? 'ঢাকার ভেতরে' : 'Inside Dhaka'}</p>
-                      <p className="text-[10px] text-[#6B6357]">{language === 'bn' ? '২-৩ কার্যদিবস' : '2-3 Days'}</p>
+                    <span className="text-sm font-bold text-[#1E1E1E]">
+                      {t('paymentCod')}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 bg-[#E8F5E9] text-[#2E7D32] text-[11px] font-bold rounded">
+                    জনপ্রিয়
+                  </span>
+                </div>
+                <p className="text-xs text-[#6B6357] pl-6 leading-relaxed">
+                  {t('paymentCodDesc')}
+                </p>
+              </label>
+
+              {/* bKash Option */}
+              <label
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-3 ${
+                  paymentMethod === 'bkash'
+                    ? 'border-[#E2136E] bg-[#FFF0F5] ring-1 ring-[#E2136E]'
+                    : 'border-[#DDD4C5] bg-[#FAF7F2]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'bkash'}
+                      onChange={() => setPaymentMethod('bkash')}
+                      className="text-[#E2136E] focus:ring-[#E2136E]"
+                    />
+                    <span className="text-sm font-bold text-[#1E1E1E] flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#E2136E]" />
+                      {t('paymentBkash')}
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 bg-[#E2136E] text-white text-[10px] font-bold rounded">
+                    bKash
+                  </span>
+                </div>
+
+                {paymentMethod === 'bkash' && (
+                  <div className="pl-6 pt-2 border-t border-[#F5D8E4] flex flex-col gap-3 text-xs">
+                    <p className="text-[#6B6357] leading-relaxed">
+                      {t('paymentBkashDesc')}
+                    </p>
+                    <div className="p-3 bg-white rounded-lg border border-[#F0BED2] flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
+                        <p className="text-sm font-bold text-[#E2136E] tracking-wider">{settings.bkashNumber || '01711234567'}</p>
+                      </div>
+                      <span className="text-[11px] text-[#696156] font-medium bg-[#FFF0F5] px-2 py-1 rounded">
+                        পার্সোনাল / সেন্ড মানি
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
+                          {t('senderNumber')}
+                        </label>
+                        <input
+                          type="tel"
+                          value={senderNumber}
+                          onChange={(e) => setSenderNumber(e.target.value)}
+                          placeholder={t('senderNumberPlaceholder')}
+                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
+                          {t('trxIdLabel')} <span className="text-[#E2136E]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={trxId}
+                          onChange={(e) => {
+                            setTrxId(e.target.value);
+                            if (errors.trxId) setErrors({ ...errors, trxId: '' });
+                          }}
+                          placeholder={t('trxIdPlaceholder')}
+                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs font-mono uppercase"
+                        />
+                        {errors.trxId && <p className="text-[10px] text-[#D32F2F] mt-1">{errors.trxId}</p>}
+                      </div>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-[#962D3E]">৳৮০</span>
-                </label>
+                )}
+              </label>
 
-                <label 
-                  className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                    formData.deliveryArea === 'outside' 
-                      ? 'border-[#962D3E] bg-[#FAF0F2]' 
-                      : 'border-[#DDD5C7] bg-[#FAF8F5]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="radio" 
-                      name="deliveryArea" 
-                      checked={formData.deliveryArea === 'outside'} 
-                      onChange={() => setFormData({ ...formData, deliveryArea: 'outside' })}
-                      className="accent-[#962D3E]"
+              {/* Nagad Option */}
+              <label
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-3 ${
+                  paymentMethod === 'nagad'
+                    ? 'border-[#F7931E] bg-[#FFF8F0] ring-1 ring-[#F7931E]'
+                    : 'border-[#DDD4C5] bg-[#FAF7F2]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'nagad'}
+                      onChange={() => setPaymentMethod('nagad')}
+                      className="text-[#F7931E] focus:ring-[#F7931E]"
                     />
-                    <div>
-                      <p className="text-xs font-bold">{language === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}</p>
-                      <p className="text-[10px] text-[#6B6357]">{language === 'bn' ? '৩-৫ কার্যদিবস' : '3-5 Days'}</p>
+                    <span className="text-sm font-bold text-[#1E1E1E] flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#F7931E]" />
+                      {t('paymentNagad')}
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 bg-[#F7931E] text-white text-[10px] font-bold rounded">
+                    Nagad
+                  </span>
+                </div>
+
+                {paymentMethod === 'nagad' && (
+                  <div className="pl-6 pt-2 border-t border-[#F8E2CE] flex flex-col gap-3 text-xs">
+                    <p className="text-[#6B6357] leading-relaxed">
+                      {t('paymentNagadDesc')}
+                    </p>
+                    <div className="p-3 bg-white rounded-lg border border-[#F8CFAC] flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
+                        <p className="text-sm font-bold text-[#F7931E] tracking-wider">{settings.nagadNumber || '01711234567'}</p>
+                      </div>
+                      <span className="text-[11px] text-[#696156] font-medium bg-[#FFF8F0] px-2 py-1 rounded">
+                        পার্সোনাল / সেন্ড মানি
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
+                          {t('senderNumber')}
+                        </label>
+                        <input
+                          type="tel"
+                          value={senderNumber}
+                          onChange={(e) => setSenderNumber(e.target.value)}
+                          placeholder={t('senderNumberPlaceholder')}
+                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
+                          {t('trxIdLabel')} <span className="text-[#F7931E]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={trxId}
+                          onChange={(e) => {
+                            setTrxId(e.target.value);
+                            if (errors.trxId) setErrors({ ...errors, trxId: '' });
+                          }}
+                          placeholder={t('trxIdPlaceholder')}
+                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs font-mono uppercase"
+                        />
+                        {errors.trxId && <p className="text-[10px] text-[#D32F2F] mt-1">{errors.trxId}</p>}
+                      </div>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-[#962D3E]">৳১৫০</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Options */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E5DDD0] shadow-xs flex flex-col gap-3">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#F0EAE1]">
-              <span className="w-5 h-5 rounded-full bg-[#962D3E] text-white text-[11px] font-bold flex items-center justify-center">2</span>
-              <h3 className="text-xs font-bold text-[#1E1E1E] uppercase tracking-wider">
-                {language === 'bn' ? 'পেমেন্ট মেথড নির্বাচন করুন' : 'Select Payment Method'}
-              </h3>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                formData.paymentMethod === 'cod' ? 'border-[#962D3E] bg-[#FAF0F2]' : 'border-[#DDD5C7] bg-[#FAF8F5]'
-              }`}>
-                <div className="flex items-center gap-2.5">
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    checked={formData.paymentMethod === 'cod'} 
-                    onChange={() => setFormData({ ...formData, paymentMethod: 'cod' })}
-                    className="accent-[#962D3E]"
-                  />
-                  <div>
-                    <p className="text-xs font-bold">{language === 'bn' ? 'ক্যাশ অন ডেলিভারি (Cash on Delivery)' : 'Cash on Delivery'}</p>
-                    <p className="text-[10px] text-[#6B6357]">{language === 'bn' ? 'পণ্য হাতে পেয়ে টাকা পরিশোধ করবেন' : 'Pay when product is delivered'}</p>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">জনপ্রিয়</span>
+                )}
               </label>
 
-              <label className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                formData.paymentMethod === 'bkash' ? 'border-[#962D3E] bg-[#FAF0F2]' : 'border-[#DDD5C7] bg-[#FAF8F5]'
-              }`}>
-                <div className="flex items-center gap-2.5">
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    checked={formData.paymentMethod === 'bkash'} 
-                    onChange={() => setFormData({ ...formData, paymentMethod: 'bkash' })}
-                    className="accent-[#962D3E]"
-                  />
-                  <span className="text-xs font-bold">{language === 'bn' ? 'বিকাশ (bKash Send Money)' : 'bKash'}</span>
-                </div>
-                <span className="text-[10px] bg-[#E2136E] text-white px-2 py-0.5 rounded font-bold">bKash</span>
-              </label>
             </div>
+
           </div>
-        </form>
 
-        {/* Order Summary Side Column */}
-        <div className="lg:col-span-5 sticky top-20">
-          <div className="bg-white border border-[#E5DDD0] p-5 rounded-2xl shadow-xs">
-            <h3 className="text-xs font-bold pb-3 border-b border-[#F0EAE1] text-[#1E1E1E] uppercase tracking-wider">
-              {language === 'bn' ? 'অর্ডারের বিবরণ' : 'Order Details'}
-            </h3>
+          {/* Right Summary: Items, Subtotal, Delivery Fee & Confirm Button */}
+          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-5 sticky top-24">
+            <h2 className="font-serif-luxury text-lg font-bold text-[#1E1E1E] border-b border-[#F0EAE0] pb-3">
+              {t('orderSummary')}
+            </h2>
 
-            <div className="max-h-60 overflow-y-auto my-3 divide-y divide-[#F0EAE1] pr-1">
-              {cart.map((item) => (
-                <div key={item.id} className="py-2.5 flex items-center gap-3">
+            {/* Cart Items Preview */}
+            <div className="divide-y divide-[#F2ECE3] max-h-64 overflow-y-auto pr-1">
+              {cart.map((item, idx) => (
+                <div key={idx} className="py-3 flex items-center gap-3">
                   <img
                     src={item.image}
-                    alt={item.title}
-                    className="w-12 h-12 object-cover rounded-xl border border-[#E5DDD0]"
+                    alt={language === 'bn' ? item.nameBn : item.nameEn}
+                    className="w-14 h-14 object-cover rounded-lg bg-[#F0EAE0] shrink-0 border border-[#E5DDD0]"
+                    referrerPolicy="no-referrer"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#1E1E1E] truncate">{item.title}</p>
-                    <p className="text-[11px] text-[#6B6357] mt-0.5">
-                      পরিমাণ: {item.quantity}
+                    <p className="text-xs font-bold text-[#1E1E1E] truncate">
+                      {language === 'bn' ? item.nameBn : item.nameEn}
+                    </p>
+                    <p className="text-[11px] text-[#7A7165]">
+                      {item.selectedSize && <span>{item.selectedSize} · </span>}
+                      <span>পরিমাণ: {item.quantity}</span>
+                    </p>
+                    <p className="text-xs font-semibold text-[#962D3E] tabular-nums">
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-[#1E1E1E]">
-                    ৳{(item.price * item.quantity).toLocaleString()}
-                  </span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-3 border-t border-[#F0EAE1] flex flex-col gap-2 text-xs">
-              <div className="flex justify-between text-[#6B6357]">
-                <span>সাবটোটাল</span>
-                <span className="text-[#1E1E1E] font-medium">৳{totalAmount.toLocaleString()}</span>
+            {/* Pricing Breakdown */}
+            <div className="pt-3 border-t border-[#F0EAE0] flex flex-col gap-2.5 text-xs sm:text-sm text-[#4A433A]">
+              <div className="flex justify-between">
+                <span>{t('subtotal')}</span>
+                <span className="font-semibold text-[#1E1E1E] tabular-nums">{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-[#6B6357]">
-                <span>ডেলিভারি চার্জ</span>
-                <span className="text-[#1E1E1E] font-medium">৳{deliveryFee}</span>
-              </div>
-              <div className="flex justify-between text-base font-bold pt-2 border-t border-[#F0EAE1] text-[#1E1E1E]">
-                <span>সর্বমোট</span>
-                <span className="text-[#962D3E]">৳{grandTotal.toLocaleString()}</span>
+              <div className="flex justify-between">
+                <span>{t('deliveryFee')}</span>
+                <span className="font-semibold text-[#1E1E1E] tabular-nums">
+                  {formatPrice(deliveryCharge)}
+                </span>
               </div>
             </div>
 
+            {/* Total Payable */}
+            <div className="pt-3 border-t border-[#E8E1D5] flex justify-between items-baseline">
+              <span className="text-base font-bold text-[#1E1E1E]">{t('total')}</span>
+              <span className="text-2xl font-bold text-[#962D3E] tabular-nums">
+                {formatPrice(grandTotal)}
+              </span>
+            </div>
+
+            {/* Submit Button */}
             <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full mt-5 py-3.5 bg-[#962D3E] hover:bg-[#7D2232] text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
+              type="submit"
+              disabled={submitting}
+              className="w-full py-4 bg-[#962D3E] hover:bg-[#7D2232] text-white font-bold text-sm rounded-xl transition-all active:scale-[0.99] flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
             >
-              {isSubmitting ? (
-                <span className="animate-pulse">প্রসেসিং হচ্ছে...</span>
+              {submitting ? (
+                <span>{t('placingOrder')}</span>
               ) : (
                 <>
-                  <span>অর্ডার কনফার্ম করুন</span>
+                  <span>{t('confirmOrder')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
 
-            <p className="mt-3 text-center text-[10px] text-[#6B6357] flex items-center justify-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>কোনো অগ্রিম পেমেন্টের ঝুঁকি নেই, পণ্য হাতে পেয়ে মূল্য দিন</span>
-            </p>
+            {errors.submit && (
+              <p className="text-xs text-[#D32F2F] text-center font-medium bg-[#FDEDED] p-2.5 rounded-lg">
+                {errors.submit}
+              </p>
+            )}
+
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#696156] pt-1">
+              <ShieldCheck className="w-4 h-4 text-[#2E7D32]" />
+              <span>
+                {language === 'bn'
+                  ? 'কোনো অগ্রিম পেমেন্টের ঝুঁকি নেই, পণ্য হাতে পেয়ে মূল্য দিন'
+                  : 'Zero upfront risk. Verify and inspect upon doorstep arrival.'}
+              </span>
+            </div>
+
           </div>
-        </div>
+
+        </form>
+
       </div>
     </div>
   );
