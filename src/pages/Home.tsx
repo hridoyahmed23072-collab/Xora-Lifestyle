@@ -34,8 +34,8 @@ export const Home: React.FC = () => {
     return true;
   });
 
-  // Hero Background Image URL
-  const heroBgImage = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=2000";
+  // Hero Background Image URL (আপনার পছন্দের নতুন ছবিটি এখানে সেট করা হলো)
+  const heroBgImage = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=2000";
 
   return (
     <div className="flex flex-col min-h-screen">
