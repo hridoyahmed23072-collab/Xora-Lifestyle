@@ -43,16 +43,16 @@ const CartNotificationToast: React.FC = () => {
   if (!addedToastMessage) return null;
 
   return (
-    <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#1E1E1E] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200 border border-[#3A3A3A]">
-      <span className="w-2 h-2 rounded-full bg-[#2E7D32]" />
+    <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#151c18] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200 border border-amber-500/30">
+      <span className="w-2 h-2 rounded-full bg-amber-400" />
       <span>
         {language === 'bn'
-          ? `"${addedToastMessage}" ব্যাগে যোগ হয়েছে`
+          ? `"${addedToastMessage}" ব্যাগে যোগ হয়েছে`
           : `Added "${addedToastMessage}" to bag`}
       </span>
       <button
         onClick={dismissToast}
-        className="text-[#999] hover:text-white ml-2 text-[11px]"
+        className="text-slate-400 hover:text-white ml-2 text-[11px]"
       >
         ✕
       </button>
@@ -83,7 +83,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1E1E1E] font-bengali selection:bg-[#962D3E] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#0c100e] text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
       {/* 1. Announcement Bar */}
       <AnnouncementBar />
 
@@ -139,4 +139,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
