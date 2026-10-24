@@ -116,7 +116,7 @@ export const Checkout: React.FC = () => {
     }
   };
 
-  // Filter Districts Live as User Types in Search Box
+  // Filter Districts Live as User Types & Auto-Sync Upazila
   const filteredDistricts = BANGLADESH_DISTRICTS.filter((d) => {
     const query = districtSearchQuery.trim().toLowerCase();
     if (!query) return true;
@@ -127,6 +127,35 @@ export const Checkout: React.FC = () => {
       d.divisionEn.toLowerCase().includes(query)
     );
   });
+
+  // Handle Search Input Change with Auto-Selection
+  const handleDistrictSearchChange = (query: string) => {
+    setDistrictSearchQuery(query);
+    const matches = BANGLADESH_DISTRICTS.filter((d) => {
+      const q = query.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        d.nameBn.toLowerCase().includes(q) ||
+        d.nameEn.toLowerCase().includes(q) ||
+        d.divisionBn.toLowerCase().includes(q) ||
+        d.divisionEn.toLowerCase().includes(q)
+      );
+    });
+
+    // Automatically select the first matched district so upazilas update instantly
+    if (matches.length > 0) {
+      const firstMatchId = matches[0].id;
+      setSelectedDistrict(firstMatchId);
+      const upazilas = districtUpazilas[firstMatchId] || ['Sadar'];
+      setSelectedUpazila(upazilas[0]);
+
+      if (firstMatchId === 'dhaka') {
+        setDeliveryZone('inside_dhaka');
+      } else {
+        setDeliveryZone('outside_dhaka');
+      }
+    }
+  };
 
   // BD Phone Number Validator
   const validatePhone = (input: string): boolean => {
@@ -338,8 +367,8 @@ export const Checkout: React.FC = () => {
                   <input
                     type="text"
                     value={districtSearchQuery}
-                    onChange={(e) => setDistrictSearchQuery(e.target.value)}
-                    placeholder={language === 'bn' ? 'যেমন: গাজীপুর, চট্টগ্রাম, Sylhet...' : 'Type district name...'}
+                    onChange={(e) => handleDistrictSearchChange(e.target.value)}
+                    placeholder={language === 'bn' ? 'যেমন: ময়ম, গাজীপুর, Sylhet...' : 'Type district name...'}
                     className="w-full pl-9 pr-3.5 py-2 rounded-lg border border-[#D5CCC0] text-xs text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E]"
                   />
                 </div>
