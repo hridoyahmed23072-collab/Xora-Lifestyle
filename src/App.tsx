@@ -102,7 +102,9 @@ function AppContent() {
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/order-success/:id" element={<OrderSuccess />} />
+          <Route path="/invoice/:id" element={<OrderSuccess />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

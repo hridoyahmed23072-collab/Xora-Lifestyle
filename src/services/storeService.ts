@@ -289,6 +289,9 @@ export const storeService = {
       address: orderData.address,
       district: orderData.district,
       upazila: orderData.upazila || '',
+      paymentMethod: orderData.paymentMethod,
+      paymentNumber: (orderData as any).paymentNumber || '',
+      trxId: (orderData as any).trxId || '',
       customerInfo: {
         name: orderData.customerName,
         phone: orderData.phone,
@@ -418,6 +421,8 @@ export const storeService = {
       address: order.address || order.customerInfo?.address || '',
       district: order.district || order.customerInfo?.district || 'ঢাকা',
       upazila: order.upazila || order.customerInfo?.upazila || '',
+      paymentNumber: order.paymentNumber || '',
+      trxId: order.trxId || '',
       customerInfo: {
         name: order.customerName || order.customerInfo?.name || '',
         phone: order.phone || order.customerInfo?.phone || '',

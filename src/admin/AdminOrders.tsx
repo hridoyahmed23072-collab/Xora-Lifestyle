@@ -96,6 +96,7 @@ export const AdminOrders: React.FC = () => {
       'Upazila',
       'Delivery Zone',
       'Payment Method',
+      'Sender Payment Number',
       'TrxID',
       'Subtotal (BDT)',
       'Delivery Fee (BDT)',
@@ -113,6 +114,7 @@ export const AdminOrders: React.FC = () => {
       `"${o.upazila || ''}"`,
       `"${o.deliveryZone}"`,
       `"${o.paymentMethod.toUpperCase()}"`,
+      `"${o.paymentNumber || ''}"`,
       `"${o.trxId || ''}"`,
       o.subtotal,
       o.deliveryCharge,
@@ -295,6 +297,11 @@ export const AdminOrders: React.FC = () => {
                       <span className="font-bold text-[11px] uppercase text-[#3D362C]">
                         {o.paymentMethod}
                       </span>
+                      {o.paymentNumber && (
+                        <p className="text-[10px] font-mono text-[#7A7165]">
+                          Sender: {o.paymentNumber}
+                        </p>
+                      )}
                       {o.trxId && (
                         <p className="text-[10px] font-mono text-[#0A66C2]">
                           Trx: {o.trxId}
@@ -476,6 +483,7 @@ export const AdminOrders: React.FC = () => {
               <div className="pt-2 border-t border-[#F0EAE0] flex flex-col gap-1 text-[11px] text-[#7A7165]">
                 <p>
                   Payment Method: <strong>{activeInvoiceOrder.paymentMethod.toUpperCase()}</strong>
+                  {activeInvoiceOrder.paymentNumber && <span> · Sender Mobile: <strong>{activeInvoiceOrder.paymentNumber}</strong></span>}
                   {activeInvoiceOrder.trxId && <span> · TrxID: <strong>{activeInvoiceOrder.trxId}</strong></span>}
                 </p>
                 {activeInvoiceOrder.notes && (

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, ShieldCheck, Truck, ArrowLeft, AlertCircle, MapPin } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, Truck, ArrowLeft, AlertCircle, MapPin, Copy, Check, Info } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { storeService } from '../services/storeService';
@@ -20,6 +20,7 @@ export const Checkout: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -30,7 +31,17 @@ export const Checkout: React.FC = () => {
     upazila: 'ধানমন্ডি',
     notes: '',
     paymentMethod: 'cod' as 'cod' | 'bkash' | 'nagad',
+    paymentNumber: '',
+    trxId: '',
   });
+
+  const handleCopy = (text: string) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   // Calculate available upazilas dynamically whenever district changes
   const availableUpazilas = useMemo(() => {
@@ -96,6 +107,33 @@ export const Checkout: React.FC = () => {
       return;
     }
 
+    if (formData.paymentMethod === 'bkash' || formData.paymentMethod === 'nagad') {
+      const methodName = formData.paymentMethod === 'bkash' ? 'বিকাশ' : 'নগদ';
+      const cleanPayNum = formData.paymentNumber.trim();
+      const cleanTrx = formData.trxId.trim();
+
+      if (!cleanPayNum) {
+        setError(`অনুগ্রহ করে যে নম্বর থেকে টাকা পাঠিয়েছেন সেই ১১ ডিজিটের ${methodName} নম্বরটি দিন।`);
+        return;
+      }
+
+      const bdPhoneRegex = /^01[3-9]\d{8}$/;
+      if (!bdPhoneRegex.test(cleanPayNum)) {
+        setError(`অনুগ্রহ করে সঠিক ১১ ডিজিটের ${methodName} নম্বর প্রদান করুন (01 দিয়ে শুরু, যেমন: 017XXXXXXXX)।`);
+        return;
+      }
+
+      if (!cleanTrx) {
+        setError('অনুগ্রহ করে Transaction ID (TrxID) প্রদান করুন।');
+        return;
+      }
+
+      if (cleanTrx.length < 4) {
+        setError('অনুগ্রহ করে সঠিক Transaction ID (কমপক্ষে ৪ অক্ষর) প্রদান করুন।');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
@@ -130,6 +168,8 @@ export const Checkout: React.FC = () => {
         subtotal: subtotal,
         totalAmount: grandTotal,
         paymentMethod: formData.paymentMethod,
+        paymentNumber: formData.paymentMethod === 'cod' ? undefined : formData.paymentNumber.trim(),
+        trxId: formData.paymentMethod === 'cod' ? undefined : formData.trxId.trim().toUpperCase(),
         notes: formData.notes.trim() || undefined,
         items: orderItems,
       };
@@ -138,7 +178,7 @@ export const Checkout: React.FC = () => {
 
       if (createdOrder) {
         clearCart();
-        navigate('/order-success', { state: { order: createdOrder } });
+        navigate(`/order-success/${createdOrder.id}`, { state: { order: createdOrder } });
       } else {
         setError('অর্ডারটি সেভ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।');
       }
@@ -349,6 +389,165 @@ export const Checkout: React.FC = () => {
                   নগদ (Nagad)
                 </button>
               </div>
+
+              {/* bKash & Nagad Payment Information Box */}
+              {formData.paymentMethod !== 'cod' && (
+                <div className="mt-4 p-4 sm:p-5 rounded-2xl border transition-all animate-in fade-in duration-200 bg-white shadow-xs border-slate-300">
+                  {formData.paymentMethod === 'bkash' ? (
+                    <div className="space-y-4">
+                      {/* bKash Header & Target Number */}
+                      <div className="bg-pink-50 p-4 rounded-xl border border-pink-200">
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-pink-600 text-white font-bold text-xs rounded-lg uppercase">
+                            বিকাশ (bKash) পেমেন্ট
+                          </span>
+                          <span className="text-xs font-bold text-pink-900 bg-white px-2.5 py-1 rounded-md border border-pink-200">
+                            মোট প্রদেয়: ৳ {grandTotal}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-700 mb-1.5 font-medium">
+                          টাকা পাঠানোর জন্য আমাদের বিকাশ নম্বর:
+                        </p>
+                        <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-pink-300 shadow-xs">
+                          <span className="font-mono font-bold text-base text-pink-700 tracking-wider">
+                            {settings.bkashNumber || '01711234567'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(settings.bkashNumber || '01711234567')}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 hover:bg-pink-200 text-pink-800 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                          >
+                            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copied ? 'কপি হয়েছে' : 'কপি করুন'}</span>
+                          </button>
+                        </div>
+
+                        <div className="mt-3 bg-pink-100/70 p-2.5 rounded-lg text-[11px] text-pink-950 space-y-1 border border-pink-200/60">
+                          <p className="font-bold flex items-center gap-1 text-pink-900">
+                            <Info className="w-3.5 h-3.5 shrink-0 text-pink-700" /> কীভাবে Send Money করবেন:
+                          </p>
+                          <ol className="list-decimal list-inside space-y-0.5 text-slate-800 pl-1 font-medium">
+                            <li>আপনার বিকাশ অ্যাপে যান অথবা *247# ডায়াল করুন।</li>
+                            <li><strong>Send Money</strong> অপশন নির্বাচন করে উপরের নম্বরে <strong>৳ {grandTotal}</strong> পাঠান।</li>
+                            <li>সফলভাবে টাকা পাঠানোর পর নিচের ঘরে প্রেরক নম্বর ও TrxID লিখুন।</li>
+                          </ol>
+                        </div>
+                      </div>
+
+                      {/* bKash Input Fields */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            আপনার বিকাশ নম্বর (যেটি থেকে পাঠিয়েছেন) <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            required
+                            maxLength={11}
+                            placeholder="01XXXXXXXXX"
+                            value={formData.paymentNumber}
+                            onChange={(e) => setFormData({ ...formData, paymentNumber: e.target.value.replace(/[^0-9]/g, '') })}
+                            className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-pink-600 focus:border-pink-600 outline-none text-sm text-slate-900 font-mono placeholder:text-slate-400"
+                          />
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">১১ ডিজিটের মোবাইল নম্বর (01 দিয়ে শুরু)</span>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            Transaction ID (TrxID) <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="যেমন: 9J3K8L2P"
+                            value={formData.trxId}
+                            onChange={(e) => setFormData({ ...formData, trxId: e.target.value.toUpperCase() })}
+                            className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-pink-600 focus:border-pink-600 outline-none text-sm text-slate-900 font-mono uppercase placeholder:text-slate-400"
+                          />
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">টাকা পাঠানোর পর বিকাশ কনফার্মেশন মেসেজের TrxID</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Nagad Header & Target Number */}
+                      <div className="bg-orange-50 p-4 rounded-xl border border-orange-200">
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-600 text-white font-bold text-xs rounded-lg uppercase">
+                            নগদ (Nagad) পেমেন্ট
+                          </span>
+                          <span className="text-xs font-bold text-orange-950 bg-white px-2.5 py-1 rounded-md border border-orange-200">
+                            মোট প্রদেয়: ৳ {grandTotal}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-700 mb-1.5 font-medium">
+                          টাকা পাঠানোর জন্য আমাদের নগদ নম্বর:
+                        </p>
+                        <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-orange-300 shadow-xs">
+                          <span className="font-mono font-bold text-base text-orange-700 tracking-wider">
+                            {settings.nagadNumber || '01711234567'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(settings.nagadNumber || '01711234567')}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                          >
+                            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copied ? 'কপি হয়েছে' : 'কপি করুন'}</span>
+                          </button>
+                        </div>
+
+                        <div className="mt-3 bg-orange-100/70 p-2.5 rounded-lg text-[11px] text-orange-950 space-y-1 border border-orange-200/60">
+                          <p className="font-bold flex items-center gap-1 text-orange-900">
+                            <Info className="w-3.5 h-3.5 shrink-0 text-orange-700" /> কীভাবে Send Money করবেন:
+                          </p>
+                          <ol className="list-decimal list-inside space-y-0.5 text-slate-800 pl-1 font-medium">
+                            <li>আপনার নগদ অ্যাপে যান অথবা *167# ডায়াল করুন।</li>
+                            <li><strong>Send Money</strong> অপশন নির্বাচন করে উপরের নম্বরে <strong>৳ {grandTotal}</strong> পাঠান।</li>
+                            <li>সফলভাবে টাকা পাঠানোর পর নিচের ঘরে প্রেরক নম্বর ও TrxID লিখুন।</li>
+                          </ol>
+                        </div>
+                      </div>
+
+                      {/* Nagad Input Fields */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            আপনার নগদ নম্বর (যেটি থেকে পাঠিয়েছেন) <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            required
+                            maxLength={11}
+                            placeholder="01XXXXXXXXX"
+                            value={formData.paymentNumber}
+                            onChange={(e) => setFormData({ ...formData, paymentNumber: e.target.value.replace(/[^0-9]/g, '') })}
+                            className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-orange-600 outline-none text-sm text-slate-900 font-mono placeholder:text-slate-400"
+                          />
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">১১ ডিজিটের মোবাইল নম্বর (01 দিয়ে শুরু)</span>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            Transaction ID (TrxID) <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="যেমন: 9J3K8L2P"
+                            value={formData.trxId}
+                            onChange={(e) => setFormData({ ...formData, trxId: e.target.value.toUpperCase() })}
+                            className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-orange-600 outline-none text-sm text-slate-900 font-mono uppercase placeholder:text-slate-400"
+                          />
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">টাকা পাঠানোর পর নগদ কনফার্মেশন মেসেজের TrxID</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {error && (
