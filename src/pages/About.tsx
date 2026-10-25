@@ -28,10 +28,12 @@ export const About: React.FC = () => {
         {/* Hero Visual Card */}
         <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border border-[#E7E0D3] shadow-md mb-12">
           <img
-            src="/src/assets/images/product_leather_bag_1792674216295.jpg"
+            src="/assets/aistudio/WhatsApp_Image_2026-10-25_at_1.59.39_PM_5942c79a.jpeg"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/hero_trendy_bag.jpeg';
+            }}
             alt="Xora Lifestyle Bags"
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
         </div>
 
