@@ -9,6 +9,7 @@ export const CartDrawer: React.FC = () => {
   const { cart, isDrawerOpen, closeDrawer, updateQuantity, removeFromCart, subtotal, totalItems } = useCart();
   const { language, formatPrice, t } = useLanguage();
   const navigate = useNavigate();
+  const settings = useSettings();
 
   // Close on ESC
   useEffect(() => {
@@ -23,7 +24,7 @@ export const CartDrawer: React.FC = () => {
 
   if (!isDrawerOpen) return null;
 
-  const freeShippingThreshold = useSettings().freeShippingMinAmount || 0;
+  const freeShippingThreshold = settings?.freeShippingMinAmount || 0;
   const progressPercent = Math.min(100, freeShippingThreshold > 0 ? Math.round((subtotal / freeShippingThreshold) * 100) : 0);
   const amountNeeded = Math.max(0, freeShippingThreshold - subtotal);
 
