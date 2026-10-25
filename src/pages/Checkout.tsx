@@ -28,9 +28,7 @@ export const Checkout: React.FC = () => {
   const [address, setAddress] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('dhaka');
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('inside_dhaka');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
-  const [senderNumber, setSenderNumber] = useState('');
-  const [trxId, setTrxId] = useState('');
+  const paymentMethod: PaymentMethod = 'cod';
   const [notes, setNotes] = useState('');
 
   // UI / Validation State
@@ -88,13 +86,6 @@ export const Checkout: React.FC = () => {
           : 'Please provide detailed delivery address';
     }
 
-    if ((paymentMethod === 'bkash' || paymentMethod === 'nagad') && !trxId.trim()) {
-      newErrors.trxId =
-        language === 'bn'
-          ? 'অনুগ্রহ করে সেন্ড মানি করার পর প্রাপ্ত ট্রানজেকশন আইডি (TrxID) দিন'
-          : 'Please provide the transaction ID (TrxID)';
-    }
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -129,9 +120,7 @@ export const Checkout: React.FC = () => {
         deliveryCharge,
         subtotal,
         totalAmount: grandTotal,
-        paymentMethod,
-        paymentNumber: senderNumber.trim() || undefined,
-        trxId: trxId.trim() || undefined,
+        paymentMethod: 'cod',
         notes: notes.trim() || undefined,
         items: orderItems,
       });
@@ -368,7 +357,7 @@ export const Checkout: React.FC = () => {
               </div>
             </div>
 
-            {/* Step 2: Payment Methods (COD, bKash, Nagad) */}
+            {/* Step 2: Payment Method (Cash on Delivery) */}
             <div className="bg-white p-5 sm:p-7 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-4">
               <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
                 <span className="w-6 h-6 rounded-full bg-[#962D3E] text-white text-xs font-bold flex items-center justify-center">
@@ -380,187 +369,22 @@ export const Checkout: React.FC = () => {
               </div>
 
               {/* COD Option */}
-              <label
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
-                  paymentMethod === 'cod'
-                    ? 'border-[#962D3E] bg-[#FFF8F9] ring-1 ring-[#962D3E]'
-                    : 'border-[#DDD4C5] bg-[#FAF7F2]'
-                }`}
-              >
+              <div className="p-4 rounded-xl border border-[#962D3E] bg-[#FFF8F9] ring-1 ring-[#962D3E] flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === 'cod'}
-                      onChange={() => setPaymentMethod('cod')}
-                      className="text-[#962D3E] focus:ring-[#962D3E]"
-                    />
+                    <span className="w-3 h-3 rounded-full bg-[#962D3E]" />
                     <span className="text-sm font-bold text-[#1E1E1E]">
                       {t('paymentCod')}
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 bg-[#E8F5E9] text-[#2E7D32] text-[11px] font-bold rounded">
-                    জনপ্রিয়
+                  <span className="px-2.5 py-0.5 bg-[#E8F5E9] text-[#2E7D32] text-[11px] font-bold rounded">
+                    {language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery'}
                   </span>
                 </div>
-                <p className="text-xs text-[#6B6357] pl-6 leading-relaxed">
+                <p className="text-xs text-[#6B6357] pl-5 leading-relaxed">
                   {t('paymentCodDesc')}
                 </p>
-              </label>
-
-              {/* bKash Option */}
-              <label
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-3 ${
-                  paymentMethod === 'bkash'
-                    ? 'border-[#E2136E] bg-[#FFF0F5] ring-1 ring-[#E2136E]'
-                    : 'border-[#DDD4C5] bg-[#FAF7F2]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === 'bkash'}
-                      onChange={() => setPaymentMethod('bkash')}
-                      className="text-[#E2136E] focus:ring-[#E2136E]"
-                    />
-                    <span className="text-sm font-bold text-[#1E1E1E] flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#E2136E]" />
-                      {t('paymentBkash')}
-                    </span>
-                  </div>
-                  <span className="px-2.5 py-0.5 bg-[#E2136E] text-white text-[10px] font-bold rounded">
-                    bKash
-                  </span>
-                </div>
-
-                {paymentMethod === 'bkash' && (
-                  <div className="pl-6 pt-2 border-t border-[#F5D8E4] flex flex-col gap-3 text-xs">
-                    <p className="text-[#6B6357] leading-relaxed">
-                      {t('paymentBkashDesc')}
-                    </p>
-                    <div className="p-3 bg-white rounded-lg border border-[#F0BED2] flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
-                        <p className="text-sm font-bold text-[#E2136E] tracking-wider">{settings.bkashNumber}</p>
-                      </div>
-                      <span className="text-[11px] text-[#696156] font-medium bg-[#FFF0F5] px-2 py-1 rounded">
-                        পার্সোনাল / সেন্ড মানি
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
-                          {t('senderNumber')}
-                        </label>
-                        <input
-                          type="tel"
-                          value={senderNumber}
-                          onChange={(e) => setSenderNumber(e.target.value)}
-                          placeholder={t('senderNumberPlaceholder')}
-                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
-                          {t('trxIdLabel')} <span className="text-[#E2136E]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={trxId}
-                          onChange={(e) => {
-                            setTrxId(e.target.value);
-                            if (errors.trxId) setErrors({ ...errors, trxId: '' });
-                          }}
-                          placeholder={t('trxIdPlaceholder')}
-                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs font-mono uppercase"
-                        />
-                        {errors.trxId && <p className="text-[10px] text-[#D32F2F] mt-1">{errors.trxId}</p>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </label>
-
-              {/* Nagad Option */}
-              <label
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-3 ${
-                  paymentMethod === 'nagad'
-                    ? 'border-[#F7931E] bg-[#FFF8F0] ring-1 ring-[#F7931E]'
-                    : 'border-[#DDD4C5] bg-[#FAF7F2]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === 'nagad'}
-                      onChange={() => setPaymentMethod('nagad')}
-                      className="text-[#F7931E] focus:ring-[#F7931E]"
-                    />
-                    <span className="text-sm font-bold text-[#1E1E1E] flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#F7931E]" />
-                      {t('paymentNagad')}
-                    </span>
-                  </div>
-                  <span className="px-2.5 py-0.5 bg-[#F7931E] text-white text-[10px] font-bold rounded">
-                    Nagad
-                  </span>
-                </div>
-
-                {paymentMethod === 'nagad' && (
-                  <div className="pl-6 pt-2 border-t border-[#F8E2CE] flex flex-col gap-3 text-xs">
-                    <p className="text-[#6B6357] leading-relaxed">
-                      {t('paymentNagadDesc')}
-                    </p>
-                    <div className="p-3 bg-white rounded-lg border border-[#F8CFAC] flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] text-[#7A7165]">{t('sendMoneyTo')}</p>
-                        <p className="text-sm font-bold text-[#F7931E] tracking-wider">{settings.nagadNumber}</p>
-                      </div>
-                      <span className="text-[11px] text-[#696156] font-medium bg-[#FFF8F0] px-2 py-1 rounded">
-                        পার্সোনাল / সেন্ড মানি
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
-                          {t('senderNumber')}
-                        </label>
-                        <input
-                          type="tel"
-                          value={senderNumber}
-                          onChange={(e) => setSenderNumber(e.target.value)}
-                          placeholder={t('senderNumberPlaceholder')}
-                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[11px] font-semibold text-[#4A433A] block mb-1">
-                          {t('trxIdLabel')} <span className="text-[#F7931E]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={trxId}
-                          onChange={(e) => {
-                            setTrxId(e.target.value);
-                            if (errors.trxId) setErrors({ ...errors, trxId: '' });
-                          }}
-                          placeholder={t('trxIdPlaceholder')}
-                          className="w-full px-3 py-2 bg-white border border-[#DDD4C5] rounded-lg text-xs font-mono uppercase"
-                        />
-                        {errors.trxId && <p className="text-[10px] text-[#D32F2F] mt-1">{errors.trxId}</p>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </label>
-
+              </div>
             </div>
 
           </div>

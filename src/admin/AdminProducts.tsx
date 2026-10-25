@@ -373,7 +373,7 @@ export const AdminProducts: React.FC = () => {
                       )}
                       {p.isNew && (
                         <span className="px-1.5 py-0.5 bg-[#E8F4FD] text-[#0A66C2] text-[9px] font-bold rounded">
-                          New Arrival
+                          New Arrival (নতুন ব্যাগ)
                         </span>
                       )}
                       {p.isBestSeller && (
@@ -730,34 +730,6 @@ export const AdminProducts: React.FC = () => {
                       + Add
                     </button>
                   </div>
-                </div>
-              </div>
-
-              {/* Short Descriptions */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-semibold text-[#3D362C] block mb-1">
-                    Short Summary (English)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={shortDescriptionEn}
-                    onChange={(e) => setShortDescriptionEn(e.target.value)}
-                    placeholder="Short highlight for cards..."
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-[#3D362C] block mb-1">
-                    সংক্ষিপ্ত বিবরণ (বাংলা)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={shortDescriptionBn}
-                    onChange={(e) => setShortDescriptionBn(e.target.value)}
-                    placeholder="সংক্ষিপ্ত তথ্য..."
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl font-bengali"
-                  />
                 </div>
               </div>
 

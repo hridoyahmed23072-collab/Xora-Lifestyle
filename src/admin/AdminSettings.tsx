@@ -4,7 +4,6 @@ import {
   Save,
   CheckCircle2,
   Truck,
-  Smartphone,
   Phone,
   Info,
   Database,
@@ -113,7 +112,7 @@ export const AdminSettings: React.FC = () => {
             Store Settings
           </h1>
           <p className="text-xs text-[#7A7165] mt-1">
-            Configure delivery charges, bKash/Nagad accounts, contact info, and promotional policies.
+            Configure delivery charges, contact info, and promotional policies.
           </p>
         </div>
 
@@ -186,47 +185,7 @@ export const AdminSettings: React.FC = () => {
           </div>
         </div>
 
-        {/* Section 2: Mobile Banking (bKash & Nagad) */}
-        <div className="bg-white p-6 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-4">
-          <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
-            <Smartphone className="w-5 h-5 text-[#962D3E]" />
-            <h2 className="font-bold text-sm text-[#1E1E1E]">
-              Mobile Banking Wallet Numbers (Checkout)
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="font-semibold block mb-1 text-[#E2136E]">
-                Official bKash Number (Send Money) *
-              </label>
-              <input
-                type="text"
-                required
-                value={settings.bkashNumber}
-                onChange={(e) => setSettings({ ...settings, bkashNumber: e.target.value })}
-                placeholder="01711234567"
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold block mb-1 text-[#F7931E]">
-                Official Nagad Number (Send Money) *
-              </label>
-              <input
-                type="text"
-                required
-                value={settings.nagadNumber}
-                onChange={(e) => setSettings({ ...settings, nagadNumber: e.target.value })}
-                placeholder="01711234567"
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl font-mono"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section 3: Contact & Store Info */}
+        {/* Section 2: Contact & Store Info */}
         <div className="bg-white p-6 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
             <Phone className="w-5 h-5 text-[#962D3E]" />
