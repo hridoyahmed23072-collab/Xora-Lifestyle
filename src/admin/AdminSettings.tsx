@@ -81,6 +81,30 @@ export const AdminSettings: React.FC = () => {
     }
   };
 
+  const handleDeleteAllOrders = async () => {
+    if (
+      !confirm(
+        'WARNING: This will permanently delete ALL test orders from both Cloud Firestore and local storage. Are you sure you want to clean all test orders?'
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setActionMessage(null);
+    setActionError(null);
+    try {
+      const res = await storeService.deleteAllOrders();
+      setActionMessage(
+        `All test orders have been deleted successfully (${res.deletedCount} orders removed from Firestore). The orders list is now 100% clean!`
+      );
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to delete orders');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
@@ -331,7 +355,7 @@ export const AdminSettings: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             {/* 1. Import Sample Data */}
             <div className="p-4 bg-[#FAF7F2] border border-[#E7E0D3] rounded-xl flex flex-col justify-between gap-3">
               <div>
@@ -340,7 +364,7 @@ export const AdminSettings: React.FC = () => {
                   <span>Import Sample Data to Firestore</span>
                 </h3>
                 <p className="text-[11px] text-[#7A7165] mt-1 leading-normal">
-                  Seeds the 6 bag categories, 8 authentic bag products (with HTTPS images), reviews, and default settings directly into your Cloud Firestore collections.
+                  Seeds the 6 bag categories, 8 authentic bag products, reviews, and default settings directly into your Cloud Firestore collections.
                 </p>
               </div>
 
@@ -348,10 +372,10 @@ export const AdminSettings: React.FC = () => {
                 type="button"
                 onClick={handleImportSampleData}
                 disabled={importing || deleting}
-                className="w-full py-2.5 px-4 bg-[#962D3E] hover:bg-[#7D2232] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 bg-[#962D3E] hover:bg-[#7D2232] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UploadCloud className="w-3.5 h-3.5" />
-                <span>{importing ? 'Importing Data to Firestore...' : 'Import Sample Data to Firestore'}</span>
+                <span>{importing ? 'Importing Data to Firestore...' : 'Import Sample Data'}</span>
               </button>
             </div>
 
@@ -371,10 +395,33 @@ export const AdminSettings: React.FC = () => {
                 type="button"
                 onClick={handleDeleteAllProducts}
                 disabled={importing || deleting}
-                className="w-full py-2.5 px-4 bg-[#C53030] hover:bg-[#9B2C2C] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 bg-[#C53030] hover:bg-[#9B2C2C] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>{deleting ? 'Deleting All Products...' : 'Delete All Sample Products'}</span>
+                <span>{deleting ? 'Deleting...' : 'Delete All Products'}</span>
+              </button>
+            </div>
+
+            {/* 3. Delete All Test Orders */}
+            <div className="p-4 bg-[#FFF8F8] border border-[#FCDAD7] rounded-xl flex flex-col justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-xs text-[#822727] flex items-center gap-1.5">
+                  <Trash2 className="w-4 h-4 text-[#C53030]" />
+                  <span>Delete All Test Orders</span>
+                </h3>
+                <p className="text-[11px] text-[#822727] mt-1 leading-normal">
+                  Wipes out all test orders from Cloud Firestore and local storage so your live store orders list starts completely clean.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleDeleteAllOrders}
+                disabled={importing || deleting}
+                className="w-full py-2.5 px-4 bg-[#822727] hover:bg-[#681F1F] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deleting ? 'Deleting...' : 'Delete All Test Orders'}</span>
               </button>
             </div>
           </div>

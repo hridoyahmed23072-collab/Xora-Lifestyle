@@ -14,6 +14,9 @@ import {
   Phone,
   MapPin,
   Calendar,
+  Trash2,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import { useLanguage } from '../context/LanguageContext';
@@ -23,6 +26,8 @@ export const AdminOrders: React.FC = () => {
   const { formatPrice } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingAll, setDeletingAll] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [activeInvoiceOrder, setActiveInvoiceOrder] = useState<Order | null>(null);
@@ -36,6 +41,36 @@ export const AdminOrders: React.FC = () => {
     const data = await storeService.getOrders();
     setOrders(data);
     setLoading(false);
+  };
+
+  const handleDeleteOrder = async (orderId: string, name: string) => {
+    if (confirm(`Are you sure you want to delete order "${orderId}" (${name})?`)) {
+      await storeService.deleteOrder(orderId);
+      setToastMsg(`Order ${orderId} has been deleted.`);
+      setTimeout(() => setToastMsg(null), 3000);
+      await loadOrders();
+    }
+  };
+
+  const handleDeleteAllOrders = async () => {
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete all ${orders.length} test orders? This will wipe them from Cloud Firestore and reset the orders list.`
+      )
+    ) {
+      return;
+    }
+    setDeletingAll(true);
+    try {
+      const res = await storeService.deleteAllOrders();
+      setToastMsg(`All test orders (${res.deletedCount} items) have been deleted successfully! Your store is now ready for real customer orders.`);
+      setTimeout(() => setToastMsg(null), 4500);
+      await loadOrders();
+    } catch (err: any) {
+      alert('Failed to delete orders: ' + (err?.message || 'Error'));
+    } finally {
+      setDeletingAll(false);
+    }
   };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
@@ -139,14 +174,71 @@ export const AdminOrders: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleExportCSV}
-          className="px-4 py-2.5 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto"
-        >
-          <Download className="w-4 h-4 text-[#962D3E]" />
-          <span>Export Orders (CSV)</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={loadOrders}
+            disabled={loading}
+            className="px-3.5 py-2 bg-white hover:bg-[#FAF7F2] text-[#2D2A26] border border-[#DDD4C5] text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+            title="Refresh order list from server"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[#962D3E] ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={handleExportCSV}
+            disabled={orders.length === 0}
+            className="px-3.5 py-2 bg-white hover:bg-[#FAF7F2] disabled:opacity-50 text-[#2D2A26] border border-[#DDD4C5] text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <Download className="w-3.5 h-3.5 text-[#962D3E]" />
+            <span>Export Orders (CSV)</span>
+          </button>
+
+          {orders.length > 0 && (
+            <button
+              onClick={handleDeleteAllOrders}
+              disabled={deletingAll}
+              className="px-3.5 py-2 bg-[#FEECEC] hover:bg-[#FDD8D8] border border-[#F5C2C7] text-[#C53030] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+              title="Delete all test orders"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{deletingAll ? 'Deleting...' : 'Delete All Test Orders'}</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {toastMsg && (
+        <div className="p-3.5 bg-[#EAF8EE] border border-[#BDE8C6] text-[#1E7E34] text-xs font-semibold rounded-xl flex items-center gap-2 shadow-sm animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Test Order Cleanup Banner if orders exist */}
+      {orders.length > 0 && (
+        <div className="p-4 bg-[#FFF8F8] border border-[#FCDAD7] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="w-5 h-5 text-[#C53030] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-[#822727]">
+                টেস্ট অর্ডার ক্লিন করার অপশন ({orders.length}টি অর্ডার রয়েছে)
+              </p>
+              <p className="text-[11px] text-[#A63C3C] mt-0.5">
+                নতুন আসল কাস্টমারদের অর্ডার নেওয়ার আগে আগের সমস্ত টেস্ট অর্ডার এক ক্লিকে মুছে স্টোর সম্পূর্ণ ফ্রেশ করতে নিচের বাটনে চাপ দিন।
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleDeleteAllOrders}
+            disabled={deletingAll}
+            className="px-4 py-2 bg-[#C53030] hover:bg-[#9B2C2C] disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition-all shrink-0 self-start sm:self-auto cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{deletingAll ? 'মুছে ফেলা হচ্ছে...' : 'সব টেস্ট অর্ডার মুছুন (Clear All)'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-[#E7E0D3] shadow-sm flex flex-col gap-3">
@@ -201,14 +293,26 @@ export const AdminOrders: React.FC = () => {
                 <th className="py-3 px-4">Total Amount</th>
                 <th className="py-3 px-4">Payment</th>
                 <th className="py-3 px-4">Status & Update</th>
-                <th className="py-3 px-4 text-right">Invoice</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0EAE0]">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[#7A7165]">
-                    No orders match your search criteria.
+                  <td colSpan={7} className="py-12 text-center text-[#7A7165]">
+                    {orders.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center gap-2 max-w-md mx-auto">
+                        <div className="w-12 h-12 rounded-full bg-[#EAF8EE] text-[#1E7E34] flex items-center justify-center border border-[#BDE8C6]">
+                          <CheckCircle2 className="w-6 h-6" />
+                        </div>
+                        <p className="font-bold text-sm text-[#1E1E1E]">কোনো টেস্ট বা পুরনো অর্ডার নেই (Clean State)</p>
+                        <p className="text-xs text-[#7A7165] leading-relaxed">
+                          সব টেস্ট অর্ডার সফলভাবে মুছে ফেলা হয়েছে। এখন ওয়েবসাইট থেকে নতুন কোনো কাস্টমার অর্ডার করলেই তা সাথে সাথে স্বয়ংক্রিয়ভাবে এই টেবিলে প্রদর্শিত হবে।
+                        </p>
+                      </div>
+                    ) : (
+                      'No orders match your search criteria.'
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -263,14 +367,23 @@ export const AdminOrders: React.FC = () => {
                       </select>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => setActiveInvoiceOrder(o)}
-                        className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F2ECE3] border border-[#DDD4C5] text-[#2D2A26] rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
-                        title="View / Print Invoice"
-                      >
-                        <Printer className="w-3.5 h-3.5 text-[#962D3E]" />
-                        <span>Print</span>
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setActiveInvoiceOrder(o)}
+                          className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-[#F2ECE3] border border-[#DDD4C5] text-[#2D2A26] rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                          title="View / Print Invoice"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#962D3E]" />
+                          <span>Print</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOrder(o.id, o.customerName)}
+                          className="p-1.5 bg-[#FAF7F2] hover:bg-[#FEECEC] border border-[#DDD4C5] hover:border-[#F5C2C7] text-[#7A7165] hover:text-[#D32F2F] rounded-lg transition-colors cursor-pointer"
+                          title="Delete this order"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

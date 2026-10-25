@@ -358,7 +358,58 @@ export const storeService = {
     }
 
     const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return localData ? JSON.parse(localData) : [SAMPLE_DEMO_ORDER];
+    if (localData !== null) {
+      try {
+        return JSON.parse(localData);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  },
+
+  // ADMIN: Delete single order
+  async deleteOrder(orderId: string): Promise<boolean> {
+    if (isFirebaseConfigured && db) {
+      try {
+        await deleteDoc(doc(db, 'orders', orderId));
+      } catch (e) {
+        console.error('Failed to delete order from Firestore:', e);
+      }
+    }
+
+    const existingOrdersStr = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    if (existingOrdersStr) {
+      try {
+        const orders: Order[] = JSON.parse(existingOrdersStr);
+        const filtered = orders.filter((o) => o.id !== orderId);
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(filtered));
+      } catch (e) {
+        console.warn('Error filtering local orders:', e);
+      }
+    }
+
+    return true;
+  },
+
+  // ADMIN: Delete all test orders from Firestore & localStorage
+  async deleteAllOrders(): Promise<{ success: boolean; deletedCount: number }> {
+    let deletedCount = 0;
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const snapshot = await getDocs(collection(db, 'orders'));
+        for (const d of snapshot.docs) {
+          await deleteDoc(doc(db, 'orders', d.id));
+          deletedCount++;
+        }
+      } catch (e) {
+        console.error('Error deleting orders from Firestore:', e);
+      }
+    }
+
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]));
+    return { success: true, deletedCount };
   },
 
   // ADMIN: Update order status
