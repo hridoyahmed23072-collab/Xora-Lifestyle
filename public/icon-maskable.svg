@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#962D3E"/>
+      <stop offset="50%" stop-color="#801F30"/>
+      <stop offset="100%" stop-color="#5C101F"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCEFD2"/>
+      <stop offset="50%" stop-color="#E5C07B"/>
+      <stop offset="100%" stop-color="#C59B46"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#2B050B" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Full-bleed background for maskable icon -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Subtle ring within safe area -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#FCEFD2" stroke-opacity="0.1" stroke-width="2"/>
+
+  <!-- Scaled elements within safe zone (center ~256, 256) -->
+  <g transform="translate(51, 51) scale(0.8)">
+    <!-- Bag Handles -->
+    <path d="M196 170 C196 100, 316 100, 316 170" fill="none" stroke="url(#gold)" stroke-width="16" stroke-linecap="round" filter="url(#shadow)"/>
+
+    <!-- Bag Body -->
+    <path d="M136 170 L376 170 C388 170, 396 182, 392 194 L356 360 C352 376, 338 388, 320 388 L192 388 C174 388, 160 376, 156 360 L120 194 C116 182, 124 170, 136 170 Z" fill="#FAF7F2" filter="url(#shadow)"/>
+
+    <!-- Bag Flap -->
+    <path d="M136 170 L376 170 L364 225 C364 235, 356 242, 346 242 L166 242 C156 242, 148 235, 148 225 Z" fill="#962D3E"/>
+
+    <!-- Gold Clasp -->
+    <rect x="238" y="230" width="36" height="26" rx="6" fill="url(#gold)" filter="url(#shadow)"/>
+    <circle cx="256" cy="243" r="4" fill="#5C101F"/>
+
+    <!-- Monogram X -->
+    <text x="256" y="325" font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="64" fill="#962D3E" text-anchor="middle" letter-spacing="2">X</text>
+
+    <!-- Brand Word -->
+    <text x="256" y="358" font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="18" fill="#7A7268" text-anchor="middle" letter-spacing="6">XORA</text>
+  </g>
+</svg>

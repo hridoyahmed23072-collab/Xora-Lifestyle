@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { BANGLADESH_DISTRICTS } from '../lib/constants';
+import { BANGLADESH_LOCATIONS, getUpazilasForDistrict, isDistrictInsideDhaka } from '../lib/bangladeshLocations';
 import { storeService } from '../services/storeService';
 import { DeliveryZone, PaymentMethod } from '../types';
 import { useSettings } from '../hooks/useSettings';
@@ -27,6 +27,7 @@ export const Checkout: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('dhaka');
+  const [selectedUpazila, setSelectedUpazila] = useState('');
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('inside_dhaka');
   const paymentMethod: PaymentMethod = 'cod';
   const [notes, setNotes] = useState('');
@@ -45,14 +46,20 @@ export const Checkout: React.FC = () => {
     : settings.outsideDhakaCharge;
   const grandTotal = subtotal + deliveryCharge;
 
+  // Available Upazilas for selected district
+  const availableUpazilas = getUpazilasForDistrict(selectedDistrict);
+
   // Handle District Change
   const handleDistrictChange = (distId: string) => {
     setSelectedDistrict(distId);
-    if (distId === 'dhaka') {
+    setSelectedUpazila('');
+    if (isDistrictInsideDhaka(distId)) {
       setDeliveryZone('inside_dhaka');
     } else {
       setDeliveryZone('outside_dhaka');
     }
+    if (errors.district) setErrors((prev) => ({ ...prev, district: '' }));
+    if (errors.upazila) setErrors((prev) => ({ ...prev, upazila: '' }));
   };
 
   // BD Phone Number Validator (11 digits, starts with 013, 014, 015, 016, 017, 018, 019)
@@ -86,6 +93,14 @@ export const Checkout: React.FC = () => {
           : 'Please provide detailed delivery address';
     }
 
+    if (!selectedDistrict) {
+      newErrors.district = language === 'bn' ? 'অনুগ্রহ করে জেলা নির্বাচন করুন' : 'Please select your district';
+    }
+
+    if (!selectedUpazila) {
+      newErrors.upazila = language === 'bn' ? 'অনুগ্রহ করে আপনার উপজেলা/থানা নির্বাচন করুন' : 'Please select your Upazila / Thana';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -95,9 +110,14 @@ export const Checkout: React.FC = () => {
     setSubmitting(true);
 
     try {
-      const orderDistrictObj = BANGLADESH_DISTRICTS.find((d) => d.id === selectedDistrict);
+      const orderDistrictObj = BANGLADESH_LOCATIONS.find((d) => d.id === selectedDistrict);
       const districtName =
         language === 'bn' ? orderDistrictObj?.nameBn || 'ঢাকা' : orderDistrictObj?.nameEn || 'Dhaka';
+
+      const orderUpazilaObj = availableUpazilas.find((u) => u.id === selectedUpazila);
+      const upazilaName = orderUpazilaObj
+        ? (language === 'bn' ? orderUpazilaObj.nameBn : orderUpazilaObj.nameEn)
+        : selectedUpazila;
 
       const orderItems = cart.map((i) => ({
         productId: i.productId,
@@ -116,6 +136,7 @@ export const Checkout: React.FC = () => {
         phone: phone.trim(),
         address: address.trim(),
         district: districtName,
+        upazila: upazilaName,
         deliveryZone,
         deliveryCharge,
         subtotal,
@@ -243,22 +264,59 @@ export const Checkout: React.FC = () => {
                 )}
               </div>
 
-              {/* 64 Districts Dropdown */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-[#3D362C]">
-                  {t('district')} <span className="text-[#962D3E]">*</span>
-                </label>
-                <select
-                  value={selectedDistrict}
-                  onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="px-3.5 py-2.5 rounded-lg border border-[#D5CCC0] text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:border-[#962D3E] focus:ring-1 focus:ring-[#962D3E]"
-                >
-                  {BANGLADESH_DISTRICTS.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {language === 'bn' ? `${d.nameBn} (${d.divisionBn} বিভাগ)` : `${d.nameEn} (${d.divisionEn})`}
+              {/* Location Selectors: 64 Districts & All Upazilas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* District Dropdown */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#3D362C]">
+                    {t('district')} <span className="text-[#962D3E]">*</span>
+                  </label>
+                  <select
+                    value={selectedDistrict}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    className={`px-3.5 py-2.5 rounded-lg border text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:ring-1 transition-all ${
+                      errors.district
+                        ? 'border-[#D32F2F] focus:ring-[#D32F2F]'
+                        : 'border-[#D5CCC0] focus:border-[#962D3E] focus:ring-[#962D3E]'
+                    }`}
+                  >
+                    {BANGLADESH_LOCATIONS.map((d) => (
+                      <option key={d.id} value={d.id} className="bg-white text-slate-900 py-1">
+                        {language === 'bn' ? `${d.nameBn} (${d.divisionBn} বিভাগ)` : `${d.nameEn} (${d.divisionEn})`}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.district && <p className="text-[11px] text-[#D32F2F]">{errors.district}</p>}
+                </div>
+
+                {/* Upazila / Thana Dropdown */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#3D362C]">
+                    {t('upazila')} <span className="text-[#962D3E]">*</span>
+                  </label>
+                  <select
+                    value={selectedUpazila}
+                    onChange={(e) => {
+                      setSelectedUpazila(e.target.value);
+                      if (errors.upazila) setErrors((prev) => ({ ...prev, upazila: '' }));
+                    }}
+                    className={`px-3.5 py-2.5 rounded-lg border text-sm text-[#1E1E1E] bg-[#FAF7F2] focus:bg-white focus:outline-none focus:ring-1 transition-all ${
+                      errors.upazila
+                        ? 'border-[#D32F2F] focus:ring-[#D32F2F]'
+                        : 'border-[#D5CCC0] focus:border-[#962D3E] focus:ring-[#962D3E]'
+                    }`}
+                  >
+                    <option value="" className="text-slate-400 bg-white">
+                      {language === 'bn' ? '-- উপজেলা / থানা নির্বাচন করুন * --' : '-- Select Upazila / Thana * --'}
                     </option>
-                  ))}
-                </select>
+                    {availableUpazilas.map((u) => (
+                      <option key={u.id} value={u.id} className="bg-white text-slate-900 py-1">
+                        {language === 'bn' ? u.nameBn : u.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.upazila && <p className="text-[11px] text-[#D32F2F]">{errors.upazila}</p>}
+                </div>
               </div>
 
               {/* Full Address */}

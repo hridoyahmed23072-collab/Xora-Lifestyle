@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { storeService } from '../services/storeService';
 import { Product } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export const Header: React.FC = () => {
   const { language, toggleLanguage, t, formatPrice } = useLanguage();
@@ -159,6 +160,9 @@ export const Header: React.FC = () => {
               <Search className="w-5 h-5" />
             </button>
 
+            {/* PWA Install Button */}
+            <PWAInstallButton variant="header" />
+
             {/* Language Toggle Button */}
             <button
               onClick={toggleLanguage}
@@ -310,6 +314,11 @@ export const Header: React.FC = () => {
             >
               {t('navContact')}
             </Link>
+
+            {/* PWA Mobile Install Banner/Button */}
+            <div className="pt-2">
+              <PWAInstallButton variant="mobile-menu" />
+            </div>
           </nav>
         </div>
       )}

@@ -1,0 +1,50 @@
+{
+  "name": "Xora Lifestyle | Trendy Bags",
+  "short_name": "Xora Bags",
+  "description": "জোড়া লাইফস্টাইল - প্রিমিয়াম ট্রেন্ডি ব্যাগ, টোট ও ব্যাকপ্যাক অনলাইন শপ। ক্যাশ অন ডেলিভারি সারা বাংলাদেশে।",
+  "theme_color": "#962D3E",
+  "background_color": "#FAF7F2",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/",
+  "id": "/",
+  "lang": "bn-BD",
+  "categories": ["shopping", "lifestyle", "fashion"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "সব ব্যাগ দেখুন (Shop)",
+      "short_name": "Shop",
+      "description": "Explore all bags & new arrivals",
+      "url": "/shop",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "অর্ডার ট্র্যাক করুন (Track)",
+      "short_name": "Track",
+      "description": "Track your placed order live",
+      "url": "/track-order",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

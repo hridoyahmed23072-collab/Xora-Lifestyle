@@ -89,6 +89,7 @@ export const AdminOrders: React.FC = () => {
       'Phone',
       'Address',
       'District',
+      'Upazila',
       'Delivery Zone',
       'Payment Method',
       'TrxID',
@@ -105,6 +106,7 @@ export const AdminOrders: React.FC = () => {
       `"${o.phone}"`,
       `"${o.address.replace(/"/g, '""')}"`,
       `"${o.district}"`,
+      `"${o.upazila || ''}"`,
       `"${o.deliveryZone}"`,
       `"${o.paymentMethod.toUpperCase()}"`,
       `"${o.trxId || ''}"`,
@@ -329,7 +331,10 @@ export const AdminOrders: React.FC = () => {
                       <p className="text-[11px] text-[#7A7165] tabular-nums font-medium">{o.phone}</p>
                     </td>
                     <td className="py-3.5 px-4 max-w-xs">
-                      <p className="font-semibold text-[#1E1E1E]">{o.district}</p>
+                      <p className="font-semibold text-[#1E1E1E]">
+                        {o.district}
+                        {o.upazila ? ` · ${o.upazila}` : ''}
+                      </p>
                       <p className="text-[11px] text-[#7A7165] truncate">{o.address}</p>
                     </td>
                     <td className="py-3.5 px-4">

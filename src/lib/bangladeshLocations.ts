@@ -1080,6 +1080,7 @@ export const BANGLADESH_LOCATIONS: DistrictItem[] = [
     upazilas: [
       { id: 'mymensingh_sadar', nameBn: 'ময়মনসিংহ সদর', nameEn: 'Mymensingh Sadar' },
       { id: 'trishal', nameBn: 'ত্রিশাল', nameEn: 'Trishal' },
+      { id: 'gafargaon', nameBn: 'গফরগাঁও', nameEn: 'Gafargaon' },
       { id: 'muktagachha', nameBn: 'মুক্তাগাছা', nameEn: 'Muktagachha' },
       { id: 'fulbaria', nameBn: 'ফুলবাড়িয়া', nameEn: 'Fulbaria' },
       { id: 'bhaluka', nameBn: 'ভালুকা', nameEn: 'Bhaluka' },

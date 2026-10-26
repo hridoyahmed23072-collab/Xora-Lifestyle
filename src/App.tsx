@@ -10,6 +10,7 @@ import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { CartDrawer } from './components/CartDrawer';
 import { FloatingContactButtons } from './components/FloatingContactButtons';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 // Customer Pages
 import { Home } from './pages/Home';
@@ -85,6 +86,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1E1E1E] font-bengali selection:bg-[#962D3E] selection:text-white">
+      {/* 0. PWA Offline & Reconnect Indicator */}
+      <OfflineIndicator />
+
       {/* 1. Announcement Bar */}
       <AnnouncementBar />
 

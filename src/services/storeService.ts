@@ -339,6 +339,7 @@ export const storeService = {
             phone: o.phone ?? '',
             address: o.address ?? '',
             district: o.district ?? '',
+            upazila: o.upazila ?? '',
             subtotal,
             deliveryCharge,
             totalAmount: Number(o.totalAmount ?? o.total) || subtotal + deliveryCharge,
