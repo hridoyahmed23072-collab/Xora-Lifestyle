@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | { email: string; uid: string; displayName?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const targetAdminEmail = (ADMIN_EMAIL || 'hridoyahmed23072@gmail.com').toLowerCase().trim();
+  const targetAdminEmail = (ADMIN_EMAIL || 'admin@xoralifestyle.com').toLowerCase().trim();
 
   useEffect(() => {
     if (isFirebaseConfigured && auth) {
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!ADMIN_EMAILS.includes(cleanEmail)) {
       return {
         success: false,
-        error: `Access Denied. Only the authorized administrator account (${targetAdminEmail}) is permitted to log in.`,
+        error: 'Access Denied. Only authorized administrator accounts are permitted to log in.',
       };
     }
 

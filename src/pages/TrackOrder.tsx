@@ -26,16 +26,7 @@ export const TrackOrder: React.FC = () => {
         result = await storeService.trackOrder(orderId.trim(), phone.trim());
       }
       if (!result) {
-        const allOrders = await storeService.getOrders();
-        const rawId = orderId.trim().toUpperCase();
-        const cleanId = rawId.startsWith('XOR-') ? rawId : `XOR-${rawId}`;
-        const found = allOrders.find((o) => {
-          const oId = (o.id || '').toUpperCase();
-          return oId === cleanId || oId === rawId;
-        });
-        if (found) {
-          result = found;
-        }
+        result = await storeService.getOrderById(orderId.trim());
       }
 
       if (result) {

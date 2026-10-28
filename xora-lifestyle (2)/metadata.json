@@ -1,6 +1,0 @@
-{
-  "name": "Xora Lifestyle",
-  "description": "Premium mobile-first e-commerce store for Xora Lifestyle Bangladesh with bilingual Bangla/English support, cash on delivery, and bKash/Nagad.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

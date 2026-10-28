@@ -14,15 +14,6 @@ const getSavedFirebaseConfig = () => {
 
 const savedConfig = getSavedFirebaseConfig();
 
-const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyCe0-fEWu2j_8soF_ibl865m5zmEAi-CyM',
-  authDomain: 'xora-lifestyle.firebaseapp.com',
-  projectId: 'xora-lifestyle',
-  storageBucket: 'xora-lifestyle.firebasestorage.app',
-  messagingSenderId: '714371115229',
-  appId: '1:714371115229:web:6cfe4c71c984c1b1cdd334',
-};
-
 const getEnv = (key: string): string => {
   try {
     if (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.[key]) {
@@ -33,6 +24,15 @@ const getEnv = (key: string): string => {
     }
   } catch {}
   return '';
+};
+
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: getEnv('VITE_FIREBASE_API_KEY') || 'AIzaSyCe0-fEWu2j_8soF_ibl865m5zmEAi-CyM',
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN') || 'xora-lifestyle.firebaseapp.com',
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID') || 'xora-lifestyle',
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET') || 'xora-lifestyle.firebasestorage.app',
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || '714371115229',
+  appId: getEnv('VITE_FIREBASE_APP_ID') || '1:714371115229:web:6cfe4c71c984c1b1cdd334',
 };
 
 const firebaseConfig = {
@@ -67,14 +67,15 @@ if (isFirebaseConfigured) {
 }
 
 export { app, db, auth, firebaseConfig };
+
 export const ADMIN_EMAILS = [
   'hridoyahmed23072@gmail.com',
   'xoralifestyle21@gmail.com',
-  'xoralifestyle21@gamil.com',
   'mdmadara999@gmail.com',
   (getEnv('VITE_ADMIN_EMAIL') || '').toLowerCase().trim(),
 ].filter(Boolean);
-export const ADMIN_EMAIL = ADMIN_EMAILS[0];
+
+export const ADMIN_EMAIL = ADMIN_EMAILS[2] || ADMIN_EMAILS[0];
 export const CLOUDINARY_CLOUD_NAME = getEnv('VITE_CLOUDINARY_CLOUD_NAME');
 export const CLOUDINARY_UPLOAD_PRESET = getEnv('VITE_CLOUDINARY_UPLOAD_PRESET');
 

@@ -76,13 +76,15 @@ export const AdminLogin: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="hridoyahmed23072@gmail.com"
+                placeholder="admin@xoralifestyle.com"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border border-[#D5CCC0] rounded-xl text-xs text-[#1E1E1E] focus:bg-white focus:outline-none focus:border-[#962D3E]"
               />
             </div>
-            <p className="text-[10px] text-[#7A7165] mt-1">
-              Authorized email: <strong className="text-[#1E1E1E]">{adminEmail}</strong>
-            </p>
+            {!isFirebaseConfigured && (
+              <p className="text-[10px] text-[#7A7165] mt-1">
+                Demo Mode: <strong className="text-[#1E1E1E]">{adminEmail}</strong>
+              </p>
+            )}
           </div>
 
           <div>

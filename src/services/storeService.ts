@@ -28,9 +28,9 @@ const SAMPLE_DEMO_ORDER: Order = {
   address: 'বাড়ি নং ৪২, রোড নং ১১, বনানী, ঢাকা',
   district: 'ঢাকা',
   deliveryZone: 'inside_dhaka',
-  deliveryCharge: 70,
+  deliveryCharge: 80,
   subtotal: 3850,
-  totalAmount: 3920,
+  totalAmount: 3930,
   paymentMethod: 'cod',
   notes: 'বিকেল ৫টার পর ডেলিভারি দিলে ভালো হয়',
   items: [
@@ -191,7 +191,13 @@ export const storeService = {
       try {
         const snap = await getDoc(doc(db, 'settings', 'general'));
         if (snap.exists()) {
-          return { ...DEFAULT_SETTINGS, ...(snap.data() as StoreSettings) };
+          const data = snap.data() as StoreSettings;
+          return {
+            ...DEFAULT_SETTINGS,
+            ...data,
+            insideDhakaCharge: data.insideDhakaCharge === 70 ? DEFAULT_SETTINGS.insideDhakaCharge : (data.insideDhakaCharge ?? DEFAULT_SETTINGS.insideDhakaCharge),
+            outsideDhakaCharge: data.outsideDhakaCharge === 130 ? DEFAULT_SETTINGS.outsideDhakaCharge : (data.outsideDhakaCharge ?? DEFAULT_SETTINGS.outsideDhakaCharge),
+          };
         }
         return DEFAULT_SETTINGS;
       } catch (e) {
@@ -201,7 +207,20 @@ export const storeService = {
     }
 
     const localData = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return localData ? JSON.parse(localData) : DEFAULT_SETTINGS;
+    if (localData) {
+      try {
+        const parsed = JSON.parse(localData);
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          insideDhakaCharge: parsed.insideDhakaCharge === 70 ? DEFAULT_SETTINGS.insideDhakaCharge : (parsed.insideDhakaCharge ?? DEFAULT_SETTINGS.insideDhakaCharge),
+          outsideDhakaCharge: parsed.outsideDhakaCharge === 130 ? DEFAULT_SETTINGS.outsideDhakaCharge : (parsed.outsideDhakaCharge ?? DEFAULT_SETTINGS.outsideDhakaCharge),
+        };
+      } catch {
+        return DEFAULT_SETTINGS;
+      }
+    }
+    return DEFAULT_SETTINGS;
   },
 
   // Create and submit new order
@@ -321,6 +340,64 @@ export const storeService = {
     });
 
     return matched || null;
+  },
+
+  // Get single order by Order ID
+  async getOrderById(orderId: string): Promise<Order | null> {
+    if (!orderId) return null;
+    const rawId = orderId.trim().toUpperCase();
+    const cleanId = rawId.startsWith('XOR-') ? rawId : `XOR-${rawId}`;
+
+    if (isFirebaseConfigured && db) {
+      try {
+        let docRef = doc(db, 'orders', cleanId);
+        let docSnap = await getDoc(docRef);
+        if (!docSnap.exists() && rawId !== cleanId) {
+          docRef = doc(db, 'orders', rawId);
+          docSnap = await getDoc(docRef);
+        }
+        if (docSnap.exists()) {
+          const o: any = { id: docSnap.id, ...docSnap.data() };
+          const subtotal = Number(o.subtotal) || 0;
+          const deliveryCharge = Number(o.deliveryCharge) || 0;
+          return {
+            ...o,
+            customerName: o.customerName ?? o.name ?? '',
+            phone: o.phone ?? '',
+            address: o.address ?? '',
+            district: o.district ?? '',
+            upazila: o.upazila ?? '',
+            subtotal,
+            deliveryCharge,
+            totalAmount: Number(o.totalAmount ?? o.total) || subtotal + deliveryCharge,
+            paymentMethod: o.paymentMethod ?? 'cod',
+            items: Array.isArray(o.items) ? o.items : [],
+            status: o.status ?? 'pending',
+            createdAt: o.createdAt ?? new Date().toISOString(),
+            estimatedDelivery: o.estimatedDelivery ?? '',
+          } as Order;
+        }
+      } catch (e) {
+        console.warn('Error fetching order by ID from Firestore:', e);
+      }
+    }
+
+    const localData = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    if (localData) {
+      try {
+        const localOrders: Order[] = JSON.parse(localData);
+        return (
+          localOrders.find((o) => {
+            const oId = (o.id || '').toUpperCase();
+            return oId === cleanId || oId === rawId;
+          }) || null
+        );
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
   },
 
   // ADMIN: Get all orders

@@ -4,7 +4,7 @@ export const translations = {
     brandName: 'Xora Lifestyle',
     brandSub: 'জোড়া লাইফস্টাইল',
     tagline: 'প্রিমিয়াম কোয়ালিটির ট্রেন্ডি ব্যাগের বিশ্বস্ত ঠিকানা',
-    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৭০, ঢাকার বাইরে ৳১৩০ | ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি!',
+    announcement: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | ঢাকার ভেতর ডেলিভারি ৳৮০, ঢাকার বাইরে ৳১৫০ | ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি!',
     
     // Navigation
     navHome: 'হোম',
@@ -99,8 +99,8 @@ export const translations = {
     upazila: 'উপজেলা / থানা নির্বাচন করুন',
     selectUpazila: 'আপনার উপজেলা বা থানা বেছে নিন',
     deliveryMethod: 'ডেলিভারি এলাকা ও চার্জ',
-    insideDhaka: 'ঢাকার ভেতরে (৳৭০)',
-    outsideDhaka: 'ঢাকার বাইরে (৳১৩০)',
+    insideDhaka: 'ঢাকার ভেতরে (৳৮০)',
+    outsideDhaka: 'ঢাকার বাইরে (৳১৫০)',
     paymentMethod: 'পেমেন্ট মেথড নির্বাচন করুন',
     paymentCod: 'ক্যাশ অন ডেলিভারি (Cash on Delivery)',
     paymentCodDesc: 'পণ্য হাতে পেয়ে ডেলিভারিম্যানকে ক্যাশ টাকা প্রদান করবেন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।',
@@ -180,7 +180,7 @@ export const translations = {
     brandName: 'Xora Lifestyle',
     brandSub: 'Trendy Premium Bags',
     tagline: 'Premium-Quality Trendy Bags for Bangladesh',
-    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳70, Outside Dhaka ৳130 | Free Shipping on Orders over ৳3,000!',
+    announcement: 'Nationwide Cash on Delivery | Dhaka Delivery ৳80, Outside Dhaka ৳150 | Free Shipping on Orders over ৳3,000!',
     
     // Navigation
     navHome: 'Home',
@@ -275,8 +275,8 @@ export const translations = {
     upazila: 'Select Upazila / Thana',
     selectUpazila: 'Choose your upazila or thana',
     deliveryMethod: 'Delivery Area & Rate',
-    insideDhaka: 'Inside Dhaka (৳70)',
-    outsideDhaka: 'Outside Dhaka (৳130)',
+    insideDhaka: 'Inside Dhaka (৳80)',
+    outsideDhaka: 'Outside Dhaka (৳150)',
     paymentMethod: 'Select Payment Method',
     paymentCod: 'Cash on Delivery (COD)',
     paymentCodDesc: 'Pay cash to the delivery representative when you receive your package. No advance required.',

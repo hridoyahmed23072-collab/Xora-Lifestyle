@@ -420,9 +420,9 @@ export const ProductDetails: React.FC = () => {
               <div className="text-xs sm:text-sm text-[#4A433A] leading-relaxed max-w-2xl space-y-3">
                 <p>{t('shippingReturnContent')}</p>
                 <ul className="list-disc pl-5 space-y-1.5 text-xs">
-                  <li><strong>ঢাকার ভেতরে ডেলিভারি:</strong> ৳৭০ (২-৩ কার্যদিবস)</li>
-                  <li><strong>ঢাকার বাইরে সমগ্র বাংলাদেশে:</strong> ৳১৩০ (৩-৫ কার্যদিবস)</li>
-                  <li><strong>ক্যাশ অন ডেলিভারি:</strong> পণ্য বুঝে পেয়ে মূল্য পরিশোধ করুন</li>
+                  <li><strong>{language === 'bn' ? 'ঢাকার ভেতরে ডেলিভারি:' : 'Inside Dhaka Delivery:'}</strong> {language === 'bn' ? '৳৮০ (২-৩ কার্যদিবস)' : '৳80 (2-3 business days)'}</li>
+                  <li><strong>{language === 'bn' ? 'ঢাকার বাইরে সমগ্র বাংলাদেশে:' : 'Outside Dhaka (Nationwide):'}</strong> {language === 'bn' ? '৳১৫০ (৩-৫ কার্যদিবস)' : '৳150 (3-5 business days)'}</li>
+                  <li><strong>{language === 'bn' ? 'ক্যাশ অন ডেলিভারি:' : 'Cash on Delivery:'}</strong> {language === 'bn' ? 'পণ্য বুঝে পেয়ে মূল্য পরিশোধ করুন' : 'Pay when you receive the parcel'}</li>
                 </ul>
               </div>
             )}

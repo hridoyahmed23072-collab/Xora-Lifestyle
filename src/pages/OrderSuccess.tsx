@@ -17,15 +17,23 @@ export const OrderSuccess: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (!id) return;
 
-    // Check localStorage orders
+    // Check localStorage orders first
     const savedOrdersStr = localStorage.getItem('xora_orders');
     if (savedOrdersStr) {
-      const orders: Order[] = JSON.parse(savedOrdersStr);
-      const matched = orders.find((o) => o.id === id);
-      if (matched) {
-        setOrder(matched);
-      }
+      try {
+        const orders: Order[] = JSON.parse(savedOrdersStr);
+        const matched = orders.find((o) => o.id === id);
+        if (matched) {
+          setOrder(matched);
+          return;
+        }
+      } catch {}
     }
+
+    // Fallback: fetch from storeService/Firestore
+    storeService.getOrderById(id).then((found) => {
+      if (found) setOrder(found);
+    });
   }, [id]);
 
   const copyOrderId = () => {

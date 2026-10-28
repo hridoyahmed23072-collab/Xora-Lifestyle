@@ -1,8 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    // Helper functions
+    function isAdmin() {
+      return request.auth != null && 
+        (request.auth.token.email in [
+          'hridoyahmed23072@gmail.com',
+          'xoralifestyle21@gmail.com',
+          'mdmadara999@gmail.com'
+        ]);
+    }
+
+    // Products: Public can read, only admin can create/edit/delete
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Categories: Public can read, only admin can create/edit/delete
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Store Settings: Public can read, only admin can update
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews: Public can read and submit, only admin can edit/delete
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.resource.data.rating >= 1 && request.resource.data.rating <= 5;
+      allow update, delete: if isAdmin();
+    }
+
+    // Orders:
+    // - Customers can place new orders (create)
+    // - Customers can track a specific order by ID (get single doc)
+    // - ONLY authorized admins can list all orders (query/list) and update/delete
+    match /orders/{orderId} {
+      allow create: if true;
+      allow get: if true;
+      allow list, update, delete: if isAdmin();
     }
   }
 }
